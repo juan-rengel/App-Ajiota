@@ -1,230 +1,444 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Controle de Empréstimos</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      background: #fff;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #004AAD;
-    }
-    form > div { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
-    input {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #004AAD;
-      color: white;
-      font-weight: bold;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    button:hover { background: #003080; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      font-size: 15px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: center;
-    }
-    th { background: #eaeaea; }
-    .alert {
-      color: #d8000c;
-      background: #ffbaba;
-      padding: 10px;
-      border-radius: 6px;
-      margin-top: 15px;
-      text-align: center;
-      font-weight: bold;
-    }
-    @media (max-width: 600px) {
-      body { padding: 10px; }
-      .container { padding: 15px; }
-      th, td { font-size: 13px; }
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Controle de Empréstimos — Dark</title>
+<style>
+  :root{
+    --bg:#0f1720;
+    --card:#0b1220;
+    --muted:#9aa6b2;
+    --accent:#3b82f6;
+    --accent-2:#60a5fa;
+    --success:#22c55e;
+    --danger:#ef4444;
+    --glass: rgba(255,255,255,0.03);
+    --border: rgba(255,255,255,0.06);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+    background: linear-gradient(180deg,#071025 0%, #071529 100%);
+    color:#e6eef8;
+    padding:18px;
+  }
+
+  /* WRAPPER */
+  .wrap{
+    max-width:1200px;
+    margin:0 auto;
+    padding-top:100px; /* space for fixed header */
+  }
+
+  /* FIXED TOP SUMMARY BAR */
+  .topbar{
+    position:fixed;
+    top:12px;
+    left:50%;
+    transform:translateX(-50%);
+    width:calc(100% - 36px);
+    max-width:1200px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border:1px solid var(--border);
+    box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+    padding:12px;
+    border-radius:12px;
+    display:flex;
+    gap:12px;
+    align-items:center;
+    z-index:60;
+    backdrop-filter: blur(6px);
+  }
+  .brand{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    min-width:220px;
+  }
+  .logo{
+    width:44px;height:44px;border-radius:10px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex;align-items:center;justify-content:center;font-weight:700;color:#021126;
+    box-shadow: 0 6px 18px rgba(59,130,246,0.15);
+  }
+  .brand h1{font-size:16px;line-height:1;color:#eaf2ff}
+  .summary{display:flex;gap:10px;flex:1;align-items:center;overflow:auto;padding-right:8px}
+  .card{
+    min-width:170px;
+    background:var(--card);
+    border:1px solid var(--border);
+    padding:10px 12px;border-radius:8px;
+  }
+  .card .label{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .card .value{font-size:15px;color:#f8fafc;font-weight:700}
+
+  .controls{display:flex;gap:8px;align-items:center}
+  .controls input[type=number]{
+    width:110px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--glass);color:var(--muted)
+  }
+  .controls button{
+    background:transparent;border:1px solid var(--border);padding:8px 10px;border-radius:8px;color:var(--accent);
+    cursor:pointer;font-weight:600;
+  }
+
+  /* MAIN CARD */
+  .card-main{
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border:1px solid var(--border);
+    border-radius:12px;padding:18px;margin-bottom:18px;
+    box-shadow: 0 8px 30px rgba(2,6,23,0.45);
+  }
+
+  /* form */
+  form{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:end}
+  label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+  input[type=text],input[type=date],input[type=number],#searchInput{
+    width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);
+  }
+  .full{grid-column:span 4}
+  .btn{
+    background:linear-gradient(180deg,var(--accent),var(--accent-2));
+    color:#021126;border:none;padding:10px 12px;border-radius:8px;font-weight:700;cursor:pointer;
+  }
+  .btn.secondary{background:transparent;border:1px solid var(--border);color:var(--muted)}
+  .preview{font-size:13px;color:var(--muted);margin-left:8px;white-space:nowrap}
+
+  /* table */
+  .table-wrap{overflow:auto;margin-top:12px;border-radius:8px;border:1px solid var(--border)}
+  table{width:100%;border-collapse:collapse;min-width:1100px}
+  th,td{text-align:center;padding:10px;border-bottom:1px dashed rgba(255,255,255,0.03);font-size:13px;color:var(--muted)}
+  th{background:transparent;color:var(--accent);position:sticky;top:64px} /* sticky header inside container */
+  td.value{color:#eaf6ff;font-weight:700}
+  .actions button{margin:0 6px;padding:6px 8px;border-radius:6px;border:none;cursor:pointer}
+  .edit{background:var(--success);color:#021126}
+  .del{background:var(--danger);color:#fff}
+  .status-pendente{color:var(--danger);font-weight:700}
+  .status-ok{color:var(--success);font-weight:700}
+
+  /* responsive */
+  @media(max-width:980px){
+    form{grid-template-columns:repeat(2,1fr)}
+    .full{grid-column:span 2}
+    .topbar{padding:10px}
+  }
+  @media(max-width:520px){
+    .topbar{flex-direction:column;align-items:stretch;gap:10px}
+    .brand{min-width:unset}
+    form{grid-template-columns:1fr}
+    .full{grid-column:span 1}
+  }
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>Controle de Empréstimos</h1>
+  <!-- FIXED TOP SUMMARY -->
+  <div class="topbar" role="banner">
+    <div class="brand">
+      <div class="logo">L&E</div>
+      <div>
+        <div style="font-size:12px;color:var(--muted)">Controle de Empréstimos</div>
+        <div style="font-size:13px;color:#eaf2ff;font-weight:700">Painel</div>
+      </div>
+    </div>
 
-    <form id="loanForm">
-      <div>
-        <label for="personName">Nome da Pessoa</label>
-        <input type="text" id="personName" required>
+    <div class="summary" aria-live="polite">
+      <div class="card">
+        <div class="label">Total emprestado</div>
+        <div id="sumPrincipal" class="value">R$ 0,00</div>
       </div>
-      <div>
-        <label for="loanDate">Data do Empréstimo</label>
-        <input type="date" id="loanDate" required>
-      </div>
-      <div>
-        <label for="loanAmount">Valor do Empréstimo (R$)</label>
-        <input type="number" id="loanAmount" step="0.01" required>
-      </div>
-      <div>
-        <label for="daysToPay">Quantidade de Dias para Pagar</label>
-        <input type="number" id="daysToPay" required>
-      </div>
-      <div>
-        <label for="interestRate">Juros Adicional (%)</label>
-        <input type="number" id="interestRate" step="0.01" value="0" required>
-      </div>
-      <button type="submit">Adicionar Empréstimo</button>
-    </form>
 
-    <div id="alertPending"></div>
+      <div class="card">
+        <div class="label">Total previsto (juros por dias p/ pagar)</div>
+        <div id="sumWithInterest" class="value">R$ 0,00</div>
+      </div>
 
-    <table id="loansTable">
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Data</th>
-          <th>Valor</th>
-          <th>Dias</th>
-          <th>Juros %</th>
-          <th>Total</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+      <div class="card">
+        <div class="label">Total pendente (c/ multa)</div>
+        <div id="sumPending" class="value">R$ 0,00</div>
+      </div>
+
+      <div class="card">
+        <div class="label">Empréstimos pendentes</div>
+        <div id="countPending" class="value">0</div>
+      </div>
+    </div>
+
+    <div class="controls" aria-hidden="false">
+      <input id="globalLateRate" type="number" step="0.01" value="2" title="Multa diária % (aplicada sobre total previsto)">
+      <button id="exportJson" title="Exportar JSON">Exportar</button>
+      <button id="importJson" title="Importar JSON">Importar</button>
+    </div>
   </div>
 
-  <script>
-    // ---------- Funções utilitárias ----------
-    function saveLoans(loans) {
-      localStorage.setItem('loansData', JSON.stringify(loans));
-    }
+  <!-- MAIN -->
+  <div class="wrap">
+    <div class="card-main" role="main">
+      <form id="loanForm" autocomplete="off">
+        <input type="hidden" id="editIndex" value="">
+        <div>
+          <label for="personName">Nome da Pessoa</label>
+          <input id="personName" type="text" required>
+        </div>
 
-    function loadLoans() {
-      const data = localStorage.getItem('loansData');
-      return data ? JSON.parse(data) : [];
-    }
+        <div>
+          <label for="loanDate">Data do Empréstimo</label>
+          <input id="loanDate" type="date" required>
+        </div>
 
-    function calculateTotal(amount, interestPct) {
-      return amount + (amount * interestPct / 100);
-    }
+        <div>
+          <label for="loanAmount">Valor (R$)</label>
+          <input id="loanAmount" type="number" step="0.01" min="0" required>
+        </div>
 
-    function formatDate(dateStr) {
-      const d = new Date(dateStr);
-      return d.toLocaleDateString('pt-BR');
-    }
+        <div>
+          <label for="daysToPay">Dias para Pagar</label>
+          <input id="daysToPay" type="number" min="0" required>
+        </div>
 
-    function checkPending(loan) {
-      const loanDate = new Date(loan.loanDate);
-      const dueDate = new Date(loanDate);
-      dueDate.setDate(dueDate.getDate() + parseInt(loan.daysToPay));
-      const now = new Date();
+        <div class="full">
+          <label for="interestRate">Juros diário (%) (usado para calcular juros previstos)</label>
+          <input id="interestRate" type="number" step="0.01" value="0" required>
+        </div>
 
-      // Considera pendente a partir do dia seguinte ao vencimento
-      return now > dueDate;
-    }
+        <div style="display:flex;gap:8px;align-items:center" class="full">
+          <button class="btn" type="submit" id="submitBtn">Adicionar Empréstimo</button>
+          <button type="button" class="btn secondary" id="clearAll">Limpar histórico</button>
+          <div style="margin-left:auto" class="preview" id="livePreview">Juros previsto: R$ 0,00 — Total: R$ 0,00</div>
+        </div>
+      </form>
 
-    // ---------- Renderização ----------
-    function renderLoans() {
-      const loans = loadLoans();
-      const tbody = document.querySelector('#loansTable tbody');
-      tbody.innerHTML = '';
-      let anyPending = false;
+      <div style="margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input id="searchInput" placeholder="🔍 Buscar por nome..." style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted)">
+        <div style="color:var(--muted);font-size:13px">Tema: <strong style="color:var(--accent)">Dark</strong></div>
+      </div>
 
-      loans.forEach(loan => {
-        const total = calculateTotal(Number(loan.loanAmount), Number(loan.interestRate));
-        const isPending = checkPending(loan);
-        if (isPending) anyPending = true;
+      <div class="table-wrap" aria-live="polite">
+        <table id="loansTable" role="table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Data</th>
+              <th>Valor</th>
+              <th>Dias p/ Pagar</th>
+              <th>Vencimento</th>
+              <th>Juros %</th>
+              <th>Juros (R$)</th>
+              <th>Dias restantes/atraso</th>
+              <th>Multa (R$)</th>
+              <th>Total previsto (R$)</th>
+              <th>Total c/ multa (R$)</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-        const tr = document.createElement('tr');
+<script>
+/* ---------- util ---------- */
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+function money(v){ return 'R$ ' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function parseNum(v){ const n = Number(v); return isNaN(n) ? 0 : n; }
+function saveLoans(loans){ localStorage.setItem('loansData', JSON.stringify(loans)); }
+function loadLoans(){ const d = localStorage.getItem('loansData'); return d ? JSON.parse(d) : []; }
+function addDays(date, days){ const d = new Date(date); d.setDate(d.getDate() + Number(days)); return d; }
+function daysBetween(a,b){ return Math.floor((new Date(b) - new Date(a)) / (1000*60*60*24)); }
+function fmt(d){ const dt = new Date(d); if(isNaN(dt)) return '-'; return dt.toLocaleDateString('pt-BR'); }
 
-        const tdName = document.createElement('td');
-        tdName.textContent = loan.personName;
+/* ---------- rendering & calc ---------- */
+function renderLoans(filter=''){
+  const loans = loadLoans();
+  const tbody = $('#loansTable tbody');
+  tbody.innerHTML = '';
+  const now = new Date();
+  let sumPrincipal = 0, sumWithInterest = 0, sumPending = 0, countPending = 0;
+  const lateRateGlobal = parseNum($('#globalLateRate').value);
 
-        const tdDate = document.createElement('td');
-        tdDate.textContent = formatDate(loan.loanDate);
+  const filtered = loans.filter(l => l.personName.toLowerCase().includes(filter.toLowerCase()));
 
-        const tdAmount = document.createElement('td');
-        tdAmount.textContent = `R$ ${Number(loan.loanAmount).toFixed(2)}`;
+  filtered.forEach((loan, idx) => {
+    const principal = parseNum(loan.loanAmount);
+    const daysToPay = Number(loan.daysToPay) || 0;
+    const interestRate = parseNum(loan.interestRate);
 
-        const tdDays = document.createElement('td');
-        tdDays.textContent = loan.daysToPay;
+    // juros baseado na quantidade de dias para pagar (pré-contratado)
+    const jurosPrevistos = principal * (interestRate/100) * daysToPay;
+    const totalPrevisto = principal + jurosPrevistos;
 
-        const tdInterest = document.createElement('td');
-        tdInterest.textContent = `${Number(loan.interestRate).toFixed(2)}%`;
+    // vencimento e atraso
+    const dueDate = addDays(loan.loanDate, daysToPay);
+    const daysUntilDue = daysBetween(now, dueDate); // positive = days left
+    const diasAtraso = Math.max(0, -daysUntilDue);
 
-        const tdTotal = document.createElement('td');
-        tdTotal.textContent = `R$ ${total.toFixed(2)}`;
+    // MULTA por atraso APLICADA SOBRE O TOTAL PREVISTO (opção A)
+    const multaAtraso = totalPrevisto * (lateRateGlobal/100) * diasAtraso;
+    const totalComMulta = totalPrevisto + multaAtraso;
 
-        const tdStatus = document.createElement('td');
-        if (isPending) {
-          const span = document.createElement('span');
-          span.textContent = 'Pendente';
-          span.style.color = 'red';
-          tdStatus.appendChild(span);
-        } else {
-          tdStatus.textContent = 'Em dia';
-        }
+    // sums
+    sumPrincipal += principal;
+    sumWithInterest += totalPrevisto;
+    if(daysUntilDue < 0){ sumPending += totalComMulta; countPending += 1; }
 
-        tr.appendChild(tdName);
-        tr.appendChild(tdDate);
-        tr.appendChild(tdAmount);
-        tr.appendChild(tdDays);
-        tr.appendChild(tdInterest);
-        tr.appendChild(tdTotal);
-        tr.appendChild(tdStatus);
+    const tr = document.createElement('tr');
+    const td = (text, cls) => { const c = document.createElement('td'); c.textContent = text; if(cls) c.className = cls; return c; };
 
-        tbody.appendChild(tr);
-      });
+    tr.appendChild(td(loan.personName));
+    tr.appendChild(td(fmt(loan.loanDate)));
+    tr.appendChild(td(money(principal), 'value'));
+    tr.appendChild(td(daysToPay));
+    tr.appendChild(td(fmt(dueDate)));
+    tr.appendChild(td(interestRate.toFixed(2) + '%'));
+    tr.appendChild(td(money(jurosPrevistos)));
+    tr.appendChild(td(daysUntilDue >= 0 ? (daysUntilDue + ' dias') : (diasAtraso + ' dias de atraso')));
+    tr.appendChild(td(money(multaAtraso)));
+    tr.appendChild(td(money(totalPrevisto)));
+    tr.appendChild(td(money(totalComMulta)));
+    const st = document.createElement('td');
+    st.textContent = daysUntilDue < 0 ? 'Pendente' : 'Em dia';
+    st.className = daysUntilDue < 0 ? 'status-pendente' : 'status-ok';
+    tr.appendChild(st);
 
-      const alertDiv = document.getElementById('alertPending');
-      if (anyPending) {
-        alertDiv.innerHTML = '<div class="alert">⚠️ Há empréstimos com pendência!</div>';
-      } else {
-        alertDiv.innerHTML = '';
-      }
-    }
+    // actions
+    const actions = document.createElement('td');
+    actions.className = 'actions';
+    const bEdit = document.createElement('button'); bEdit.textContent='Editar'; bEdit.className='edit';
+    bEdit.onclick = ()=> fillFormForEdit(idx);
+    const bDel = document.createElement('button'); bDel.textContent='Excluir'; bDel.className='del';
+    bDel.onclick = ()=> { if(confirm('Excluir este empréstimo?')){ removeLoan(idx); renderLoans($('#searchInput').value); } };
+    actions.appendChild(bEdit); actions.appendChild(bDel);
+    tr.appendChild(actions);
 
-    // ---------- Evento de envio do formulário ----------
-    document.getElementById('loanForm').addEventListener('submit', function(e) {
-      e.preventDefault();
+    tbody.appendChild(tr);
+  });
 
-      const loan = {
-        personName: document.getElementById('personName').value.trim(),
-        loanDate: document.getElementById('loanDate').value,
-        loanAmount: parseFloat(document.getElementById('loanAmount').value),
-        daysToPay: parseInt(document.getElementById('daysToPay').value),
-        interestRate: parseFloat(document.getElementById('interestRate').value)
-      };
+  // update summary (fixed top)
+  $('#sumPrincipal').textContent = money(sumPrincipal);
+  $('#sumWithInterest').textContent = money(sumWithInterest);
+  $('#sumPending').textContent = money(sumPending);
+  $('#countPending').textContent = countPending;
+}
 
-      const loans = loadLoans();
-      loans.push(loan);
-      saveLoans(loans);
-      renderLoans();
-      this.reset();
-    });
+/* ---------- actions ---------- */
+function addOrUpdateLoan(loan){
+  const loans = loadLoans();
+  const editIndex = $('#editIndex').value;
+  if(editIndex !== ''){
+    loans[Number(editIndex)] = loan;
+    $('#editIndex').value = '';
+    $('#submitBtn').textContent = 'Adicionar Empréstimo';
+  } else {
+    loans.push(loan);
+  }
+  saveLoans(loans);
+}
 
-    // ---------- Inicialização ----------
-    window.addEventListener('load', renderLoans);
-  </script>
+function removeLoan(idx){
+  const loans = loadLoans();
+  loans.splice(idx,1);
+  saveLoans(loans);
+}
+
+function fillFormForEdit(idx){
+  const loans = loadLoans();
+  const loan = loans[idx];
+  $('#personName').value = loan.personName;
+  $('#loanDate').value = loan.loanDate;
+  $('#loanAmount').value = loan.loanAmount;
+  $('#daysToPay').value = loan.daysToPay;
+  $('#interestRate').value = loan.interestRate;
+  $('#editIndex').value = idx;
+  $('#submitBtn').textContent = 'Salvar Alterações';
+  updateLivePreview();
+}
+
+function clearForm(){
+  $('#loanForm').reset();
+  $('#editIndex').value = '';
+  $('#submitBtn').textContent = 'Adicionar Empréstimo';
+  updateLivePreview();
+}
+
+function updateLivePreview(){
+  const principal = parseNum($('#loanAmount').value);
+  const daysToPay = parseNum($('#daysToPay').value);
+  const interestRate = parseNum($('#interestRate').value);
+  const jurosPrevistos = principal * (interestRate/100) * daysToPay;
+  const totalPrevisto = principal + jurosPrevistos;
+  $('#livePreview').textContent = `Juros previsto: ${money(jurosPrevistos)} — Total: ${money(totalPrevisto)}`;
+}
+
+function clearAll(){
+  if(!confirm('Deseja apagar todo o histórico de empréstimos?')) return;
+  localStorage.removeItem('loansData');
+  renderLoans();
+}
+
+/* export/import JSON */
+function exportJson(){
+  const data = localStorage.getItem('loansData') || '[]';
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = `emprestimos_${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+function importJson(){
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try{
+        const parsed = JSON.parse(reader.result);
+        if(Array.isArray(parsed)){
+          localStorage.setItem('loansData', JSON.stringify(parsed));
+          renderLoans();
+          alert('Importação concluída.');
+        } else alert('Arquivo inválido.');
+      }catch(err){ alert('Erro ao importar: ' + err.message); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+/* ---------- events ---------- */
+document.addEventListener('DOMContentLoaded', ()=>{
+  renderLoans();
+
+  $('#loanForm').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const loan = {
+      personName: $('#personName').value.trim(),
+      loanDate: $('#loanDate').value,
+      loanAmount: parseNum($('#loanAmount').value),
+      daysToPay: parseNum($('#daysToPay').value),
+      interestRate: parseNum($('#interestRate').value)
+    };
+    addOrUpdateLoan(loan);
+    clearForm();
+    renderLoans($('#searchInput').value);
+  });
+
+  ['#loanAmount','#daysToPay','#interestRate'].forEach(sel => {
+    $(sel).addEventListener('input', updateLivePreview);
+  });
+
+  $('#searchInput').addEventListener('input', e => renderLoans(e.target.value));
+  $('#globalLateRate').addEventListener('input', ()=> renderLoans($('#searchInput').value));
+  $('#clearAll').addEventListener('click', clearAll);
+  $('#exportJson').addEventListener('click', exportJson);
+  $('#importJson').addEventListener('click', importJson);
+});
+</script>
 </body>
 </html>
