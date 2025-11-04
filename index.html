@@ -172,6 +172,16 @@ button.edit {
 .days-left.ok { color: var(--success); }
 .days-left.warn { color: #facc15; }
 .days-left.late { color: var(--danger); }
+
+  button.adjust {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 6px 10px;
+}
+
+
 @media (max-width: 600px) {
   .loan-row { flex-direction: column; align-items: flex-start; }
 }
@@ -241,6 +251,7 @@ button.edit {
     padding: 12px 0;
     border-bottom: 1px solid rgba(255,255,255,0.05);
   }
+
 }
 body {
   padding-top: 70px; /* evita sobreposição do menu fixo */
@@ -364,6 +375,7 @@ function renderLoans(filter=''){
       <div class="actions">
         <button class="edit" onclick="editLoan(${i})">Editar</button>
         <button class="delete" onclick="deleteLoan(${i})">Excluir</button>
+        <button class="adjust" onclick="adjustLoan(${i})">💰 Ajustar Valor</button>
       </div>`;
     list.appendChild(card);
   });
@@ -389,6 +401,43 @@ function deleteLoan(i){
   if(!confirm('Excluir este empréstimo?'))return;
   const loans=loadLoans();loans.splice(i,1);saveLoans(loans);renderLoans($('#searchInput').value);
 }
+
+function adjustLoan(i) {
+  const loans = loadLoans();
+  const l = loans[i];
+
+  const ajusteStr = prompt(
+    `Digite o valor do ajuste para ${l.personName}:\n(use número positivo para acrescentar ou negativo para subtrair)`
+  );
+
+  if (ajusteStr === null) return; // cancelado
+  const ajuste = parseFloat(ajusteStr);
+  if (isNaN(ajuste) || ajuste === 0) return alert("Valor inválido.");
+
+  // aplica ajuste
+  const novoValor = parseNum(l.loanAmount) + ajuste;
+  if (novoValor < 0) return alert("O valor final não pode ser negativo.");
+
+  l.loanAmount = novoValor.toFixed(2);
+
+  // recalcula juros e total
+  const principal = parseNum(l.loanAmount);
+  const dias = Number(l.daysToPay);
+  const rate = parseNum(l.interestRate);
+  const juros = principal * (rate / 100) * dias;
+  const totalPrev = principal + juros;
+
+  // salva alteração
+  loans[i] = l;
+  saveLoans(loans);
+
+  alert(
+    `Empréstimo ajustado!\nNovo valor: ${money(principal)}\nTotal previsto: ${money(totalPrev)}`
+  );
+
+  renderLoans($("#searchInput").value);
+}
+
 
 $('#loanForm').addEventListener('submit',e=>{
   e.preventDefault();
