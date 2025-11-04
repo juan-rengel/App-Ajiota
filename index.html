@@ -16,8 +16,8 @@
   --card: #141c2f;
   --text: #e2e8f0;
   --muted: #94a3b8;
-  --accent: #3b82f6;
-  --success: #10b981;
+  --accent: #27cbe0;
+  --success: #17db9a;
   --danger: #ef4444;
   --border: rgba(255,255,255,0.1);
   --radius: 12px;
@@ -29,9 +29,13 @@ body {
   color: var(--text);
   padding: 16px;
 }
+.container{
+  max-width: 800px;
+  margin: auto;
+}
 h1 {
   text-align: center;
-  font-size: 1.5rem;
+  font-size: 2rem;
   margin-bottom: 12px;
 }
 .top-summary {
@@ -171,9 +175,91 @@ button.edit {
 @media (max-width: 600px) {
   .loan-row { flex-direction: column; align-items: flex-start; }
 }
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: #0f172a;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  z-index: 1000;
+}
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.nav-logo {
+  font-size: 1.3rem;
+  color: #3b82f6;
+  font-weight: bold;
+}
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+}
+.nav-links a {
+  display: block;
+  text-decoration: none;
+  color: #e2e8f0;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+.nav-links a:hover {
+  color: #3b82f6;
+}
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: #e2e8f0;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+@media (max-width: 768px) {
+  .nav-toggle { display: block; }
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    background: #1e293b;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .nav-links.show { display: flex; }
+  .nav-links li {
+    text-align: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+}
+body {
+  padding-top: 70px; /* evita sobreposição do menu fixo */
+}
 </style>
 </head>
 <body>
+<div class="container">
+  <!-- 🔹 MENU FIXO DARK RESPONSIVO -->
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-logo">💸 Finance IA</div>
+    <button class="nav-toggle" id="navToggle">☰</button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">🏠 Home</a></li>
+      <li><a href="dashboard.html">📊 Dashboard</a></li>
+    </ul>
+  </div>
+</nav>
 
 <h1>📘 Controle de Empréstimos</h1>
 
@@ -221,6 +307,10 @@ button.edit {
 <div class="loan-list" id="loanList"></div>
 
 <script>
+document.getElementById('navToggle').addEventListener('click',()=>{
+  document.getElementById('navLinks').classList.toggle('show');
+});
+
 const $ = s => document.querySelector(s);
 function money(v){return 'R$ ' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2});}
 function parseNum(v){return parseFloat(v)||0;}
@@ -367,6 +457,6 @@ function exportPDF(){
   doc.save("emprestimos.pdf");
 }
 </script>
-
+</div>
 </body>
 </html>

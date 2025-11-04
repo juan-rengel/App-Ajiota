@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Dashboard - Controle de Empréstimos</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root {
+  --bg: #0a0f1f;
+  --card: #141c2f;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #3b82f6;
+  --success: #10b981;
+  --danger: #ef4444;
+  --border: rgba(255,255,255,0.1);
+  --radius: 12px;
+}
+body {
+  font-family: "Inter", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 16px;
+}
+header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 12px 16px;
+  margin-bottom: 20px;
+}
+header h1 {
+  font-size: 1.3rem;
+  margin-bottom: 8px;
+}
+header a {
+  color: white;
+  text-decoration: none;
+  background: var(--accent);
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  font-weight: bold;
+}
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.filter-bar select {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  font-size: 0.9rem;
+}
+.dashboard {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+.card h2 {
+  font-size: 1rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.value {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: var(--accent);
+}
+canvas {
+  width: 100% !important;
+  height: 260px !important;
+}
+.chart-card {
+  grid-column: span 2;
+}
+@media(max-width:800px){
+  .chart-card { grid-column: span 1; }
+  header { flex-direction: column; align-items: flex-start; }
+  .filter-bar { width: 100%; justify-content: space-between; }
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: #0f172a;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  z-index: 1000;
+}
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.nav-logo {
+  font-size: 1.3rem;
+  color: #3b82f6;
+  font-weight: bold;
+}
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+}
+.nav-links a {
+  text-decoration: none;
+  color: #e2e8f0;
+  font-weight: 500;
+  transition: color 0.3s;
+  display: block;
+}
+.nav-links a:hover {
+  color: #3b82f6;
+}
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: #e2e8f0;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+@media (max-width: 768px) {
+  .nav-toggle { display: block; }
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    background: #1e293b;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .nav-links.show { display: flex; }
+  .nav-links li {
+    text-align: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+}
+body {
+  padding-top: 70px; /* evita sobreposição do menu fixo */
+}
+</style>
+</head>
+<body>
+<!-- 🔹 MENU FIXO DARK RESPONSIVO -->
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-logo">💸 Finance IA</div>
+    <button class="nav-toggle" id="navToggle">☰</button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">🏠 Home</a></li>
+      <li><a href="dashboard.html">📊 Dashboard</a></li>
+    </ul>
+  </div>
+</nav>
+<header>
+  <h1>📊 Dashboard de Empréstimos</h1>
+  <div class="filter-bar">
+    <select id="periodFilter">
+      <option value="all">📅 Todos</option>
+      <option value="30">Últimos 30 dias</option>
+      <option value="180">Últimos 6 meses</option>
+      <option value="365">Últimos 12 meses</option>
+    </select>
+    <a href="index.html">← Voltar</a>
+  </div>
+</header>
+
+<div class="dashboard">
+  <div class="card">
+    <h2>Total Emprestado</h2>
+    <div class="value" id="totalEmprestado">R$ 0,00</div>
+  </div>
+  <div class="card">
+    <h2>Total com Juros</h2>
+    <div class="value" id="totalComJuros">R$ 0,00</div>
+  </div>
+  <div class="card">
+    <h2>Em dia</h2>
+    <div class="value" id="emDia">0</div>
+  </div>
+  <div class="card">
+    <h2>Atrasados</h2>
+    <div class="value" id="atrasados">0</div>
+  </div>
+
+  <div class="card chart-card">
+    <h2>Distribuição de Empréstimos</h2>
+    <canvas id="loanChart"></canvas>
+  </div>
+
+  <div class="card chart-card">
+    <h2>Juros Totais x Pendências</h2>
+    <canvas id="jurosChart"></canvas>
+  </div>
+
+  <div class="card chart-card">
+    <h2>Evolução dos Empréstimos</h2>
+    <canvas id="evolucaoChart"></canvas>
+  </div>
+
+  <div class="card chart-card">
+    <h2>🏆 Top 5 Clientes - Valor Emprestado</h2>
+    <canvas id="topClientesChart"></canvas>
+  </div>
+</div>
+
+<script>
+
+document.getElementById('navToggle').addEventListener('click',()=>{
+  document.getElementById('navLinks').classList.toggle('show');
+});
+const ctx1 = document.getElementById('loanChart');
+const ctx2 = document.getElementById('jurosChart');
+const ctx3 = document.getElementById('evolucaoChart');
+const ctx4 = document.getElementById('topClientesChart');
+let charts = [];
+
+function money(v){ return 'R$ ' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2}); }
+function parseNum(v){ return parseFloat(v)||0; }
+function loadLoans(){ return JSON.parse(localStorage.getItem('loansData') || '[]'); }
+
+function renderDashboard(periodDays='all'){
+  const loans = loadLoans();
+  const now = new Date();
+  const filtered = loans.filter(l=>{
+    if(periodDays==='all') return true;
+    const date = new Date(l.loanDate);
+    const diff = (now - date)/(1000*60*60*24);
+    return diff <= periodDays;
+  });
+
+  let totalEmprestado=0, totalComJuros=0, emDia=0, atrasados=0, totalJuros=0, totalPendencias=0;
+  const evolucao={}, clientes={};
+
+  filtered.forEach(l=>{
+    const valor=parseNum(l.loanAmount);
+    const dias=parseNum(l.daysToPay);
+    const juros=valor*(parseNum(l.interestRate)/100)*dias;
+    totalEmprestado+=valor;
+    totalComJuros+=valor+juros;
+    totalJuros+=juros;
+
+    const venc=new Date(l.loanDate);
+    venc.setDate(venc.getDate()+dias);
+    const diff=(venc-now)/(1000*60*60*24);
+    if(diff<0){ atrasados++; totalPendencias+=valor+juros; } else emDia++;
+
+    const d = new Date(l.loanDate);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    evolucao[key] = (evolucao[key] || 0) + valor;
+
+    clientes[l.personName] = (clientes[l.personName] || 0) + valor;
+  });
+
+  document.getElementById('totalEmprestado').textContent = money(totalEmprestado);
+  document.getElementById('totalComJuros').textContent = money(totalComJuros);
+  document.getElementById('emDia').textContent = emDia;
+  document.getElementById('atrasados').textContent = atrasados;
+
+  charts.forEach(c => c.destroy());
+  charts = [];
+
+  charts.push(new Chart(ctx1, {
+    type: 'doughnut',
+    data: {
+      labels: ['Em dia', 'Atrasados'],
+      datasets: [{ data: [emDia, atrasados], backgroundColor: ['#10b981', '#ef4444'] }]
+    },
+    options: { plugins: { legend: { labels: { color: 'white' } } } }
+  }));
+
+  charts.push(new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: ['Total de Juros', 'Total Pendente'],
+      datasets: [{ label: 'R$', data: [totalJuros, totalPendencias], backgroundColor: ['#3b82f6', '#ef4444'] }]
+    },
+    options: {
+      scales: {
+        x: { ticks: { color: '#e2e8f0' } },
+        y: { ticks: { color: '#e2e8f0' } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  }));
+
+  const meses = Object.keys(evolucao).sort();
+  const valores = meses.map(m => evolucao[m]);
+  charts.push(new Chart(ctx3, {
+    type: 'line',
+    data: {
+      labels: meses,
+      datasets: [{
+        label: 'Valor Emprestado por Mês',
+        data: valores,
+        fill: true,
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59,130,246,0.3)',
+        tension: 0.3
+      }]
+    },
+    options: {
+      scales: {
+        x: { ticks: { color: '#e2e8f0' } },
+        y: { ticks: { color: '#e2e8f0' } }
+      },
+      plugins: { legend: { labels: { color: 'white' } } }
+    }
+  }));
+
+  const top = Object.entries(clientes)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,5);
+  charts.push(new Chart(ctx4, {
+    type: 'pie',
+    data: {
+      labels: top.map(t=>t[0]),
+      datasets: [{
+        data: top.map(t=>t[1]),
+        backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6']
+      }]
+    },
+    options: { plugins: { legend: { labels: { color: 'white' } } } }
+  }));
+}
+
+document.getElementById('periodFilter').addEventListener('change', e=>{
+  renderDashboard(e.target.value);
+});
+
+document.addEventListener('DOMContentLoaded',()=>renderDashboard());
+</script>
+
+</body>
+</html>
