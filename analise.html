@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Empréstimos</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #004AAD;
+    }
+    form > div { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #004AAD;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover { background: #003080; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 15px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th { background: #eaeaea; }
+    .alert {
+      color: #d8000c;
+      background: #ffbaba;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 15px;
+      text-align: center;
+      font-weight: bold;
+    }
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      .container { padding: 15px; }
+      th, td { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Controle de Empréstimos</h1>
+
+    <form id="loanForm">
+      <div>
+        <label for="personName">Nome da Pessoa</label>
+        <input type="text" id="personName" required>
+      </div>
+      <div>
+        <label for="loanDate">Data do Empréstimo</label>
+        <input type="date" id="loanDate" required>
+      </div>
+      <div>
+        <label for="loanAmount">Valor do Empréstimo (R$)</label>
+        <input type="number" id="loanAmount" step="0.01" required>
+      </div>
+      <div>
+        <label for="daysToPay">Quantidade de Dias para Pagar</label>
+        <input type="number" id="daysToPay" required>
+      </div>
+      <div>
+        <label for="interestRate">Juros Adicional (%)</label>
+        <input type="number" id="interestRate" step="0.01" value="0" required>
+      </div>
+      <button type="submit">Adicionar Empréstimo</button>
+    </form>
+
+    <div id="alertPending"></div>
+
+    <table id="loansTable">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Data</th>
+          <th>Valor</th>
+          <th>Dias</th>
+          <th>Juros %</th>
+          <th>Total</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    // ---------- Funções utilitárias ----------
+    function saveLoans(loans) {
+      localStorage.setItem('loansData', JSON.stringify(loans));
+    }
+
+    function loadLoans() {
+      const data = localStorage.getItem('loansData');
+      return data ? JSON.parse(data) : [];
+    }
+
+    function calculateTotal(amount, interestPct) {
+      return amount + (amount * interestPct / 100);
+    }
+
+    function formatDate(dateStr) {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('pt-BR');
+    }
+
+    function checkPending(loan) {
+      const loanDate = new Date(loan.loanDate);
+      const dueDate = new Date(loanDate);
+      dueDate.setDate(dueDate.getDate() + parseInt(loan.daysToPay));
+      const now = new Date();
+
+      // Considera pendente a partir do dia seguinte ao vencimento
+      return now > dueDate;
+    }
+
+    // ---------- Renderização ----------
+    function renderLoans() {
+      const loans = loadLoans();
+      const tbody = document.querySelector('#loansTable tbody');
+      tbody.innerHTML = '';
+      let anyPending = false;
+
+      loans.forEach(loan => {
+        const total = calculateTotal(Number(loan.loanAmount), Number(loan.interestRate));
+        const isPending = checkPending(loan);
+        if (isPending) anyPending = true;
+
+        const tr = document.createElement('tr');
+
+        const tdName = document.createElement('td');
+        tdName.textContent = loan.personName;
+
+        const tdDate = document.createElement('td');
+        tdDate.textContent = formatDate(loan.loanDate);
+
+        const tdAmount = document.createElement('td');
+        tdAmount.textContent = `R$ ${Number(loan.loanAmount).toFixed(2)}`;
+
+        const tdDays = document.createElement('td');
+        tdDays.textContent = loan.daysToPay;
+
+        const tdInterest = document.createElement('td');
+        tdInterest.textContent = `${Number(loan.interestRate).toFixed(2)}%`;
+
+        const tdTotal = document.createElement('td');
+        tdTotal.textContent = `R$ ${total.toFixed(2)}`;
+
+        const tdStatus = document.createElement('td');
+        if (isPending) {
+          const span = document.createElement('span');
+          span.textContent = 'Pendente';
+          span.style.color = 'red';
+          tdStatus.appendChild(span);
+        } else {
+          tdStatus.textContent = 'Em dia';
+        }
+
+        tr.appendChild(tdName);
+        tr.appendChild(tdDate);
+        tr.appendChild(tdAmount);
+        tr.appendChild(tdDays);
+        tr.appendChild(tdInterest);
+        tr.appendChild(tdTotal);
+        tr.appendChild(tdStatus);
+
+        tbody.appendChild(tr);
+      });
+
+      const alertDiv = document.getElementById('alertPending');
+      if (anyPending) {
+        alertDiv.innerHTML = '<div class="alert">⚠️ Há empréstimos com pendência!</div>';
+      } else {
+        alertDiv.innerHTML = '';
+      }
+    }
+
+    // ---------- Evento de envio do formulário ----------
+    document.getElementById('loanForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const loan = {
+        personName: document.getElementById('personName').value.trim(),
+        loanDate: document.getElementById('loanDate').value,
+        loanAmount: parseFloat(document.getElementById('loanAmount').value),
+        daysToPay: parseInt(document.getElementById('daysToPay').value),
+        interestRate: parseFloat(document.getElementById('interestRate').value)
+      };
+
+      const loans = loadLoans();
+      loans.push(loan);
+      saveLoans(loans);
+      renderLoans();
+      this.reset();
+    });
+
+    // ---------- Inicialização ----------
+    window.addEventListener('load', renderLoans);
+  </script>
+</body>
+</html>
