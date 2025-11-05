@@ -17,6 +17,18 @@
   --border: rgba(255, 255, 255, 0.432);
   --radius: 12px;
 }
+
+.light-mode {
+  --bg: #f5f7fa;
+  --card: #ffffff;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --accent: #3b82f6;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --border: rgba(0, 0, 0, 0.12);
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: "Inter", Arial, sans-serif;
@@ -185,6 +197,17 @@ button.adjust {
 <div class="container">
 
 <h1>📘 Controle de Empréstimos</h1>
+
+<div style="text-align: center; margin-bottom: 20px;">
+  <button id="toggleThemeBtn" style="
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+  ">Modo Claro</button>
+</div>
 
 <div class="top-summary">
   <div class="summary-card">
@@ -394,6 +417,35 @@ button.adjust {
 
   $('#searchInput').addEventListener('input', (e) => renderLoans(e.target.value));
   document.addEventListener('DOMContentLoaded', () => renderLoans());
+
+  // --- Tema claro/escuro ---
+  const toggleBtn = document.getElementById('toggleThemeBtn');
+  const body = document.body;
+
+  function setTheme(isLight) {
+    if (isLight) {
+      body.classList.add('light-mode');
+      toggleBtn.textContent = 'Modo Escuro';
+      localStorage.setItem('theme', 'light');
+    } else {
+      body.classList.remove('light-mode');
+      toggleBtn.textContent = 'Modo Claro';
+      localStorage.setItem('theme', 'dark');
+    }
+  }
+
+  // Verificar preferência salva
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'light') {
+    setTheme(true);
+  } else {
+    setTheme(false);
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    const isLight = body.classList.contains('light-mode');
+    setTheme(!isLight);
+  });
 </script>
 </div>
 </body>
