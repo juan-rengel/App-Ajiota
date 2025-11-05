@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Controle de Empréstimos</title>
 
 <!-- Bibliotecas para exportação -->
@@ -19,7 +19,7 @@
   --accent: #27cbe0;
   --success: #17db9a;
   --danger: #ef4444;
-  --border: rgba(255,255,255,0.1);
+  --border: rgba(255, 255, 255, 0.432);
   --radius: 12px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -173,14 +173,13 @@ button.edit {
 .days-left.warn { color: #facc15; }
 .days-left.late { color: var(--danger); }
 
-  button.adjust {
+button.adjust {
   background: #3b82f6;
   color: white;
   border: none;
   border-radius: var(--radius);
   padding: 6px 10px;
 }
-
 
 @media (max-width: 600px) {
   .loan-row { flex-direction: column; align-items: flex-start; }
@@ -251,10 +250,67 @@ button.edit {
     padding: 12px 0;
     border-bottom: 1px solid rgba(255,255,255,0.05);
   }
-
 }
 body {
   padding-top: 70px; /* evita sobreposição do menu fixo */
+}
+
+/* Modal básico */
+.modal {
+  display: none;
+  position: fixed; 
+  z-index: 2000;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.6);
+  align-items: center;
+  justify-content: center;
+}
+.modal-content {
+  background: var(--card);
+  padding: 20px;
+  border-radius: var(--radius);
+  max-width: 400px;
+  margin: auto;
+  color: var(--text);
+  text-align: center;
+}
+.modal-content h2 {
+  margin-bottom: 12px;
+}
+#adjustInput {
+  width: 80%;
+  padding: 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: 10px;
+  background: transparent;
+  color: var(--text);
+}
+.modal-buttons {
+  display: flex;
+  justify-content: space-around;
+}
+.btn {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+.btn.cancel {
+  background: var(--danger);
+  color: white;
+}
+.btn.confirm {
+  background: var(--success);
+  color: white;
+}
+.error-msg {
+  color: var(--danger);
+  margin-top: 8px;
+  min-height: 20px;
 }
 </style>
 </head>
@@ -301,68 +357,99 @@ body {
 
 <div class="form-card">
   <form id="loanForm">
-    <input type="hidden" id="editIndex">
-    <input type="text" id="personName" placeholder="Nome da pessoa" required>
-    <input type="number" id="loanAmount" placeholder="Valor (R$)" step="0.01" required>
-    <input type="number" id="daysToPay" placeholder="Dias para pagar" required>
-    <input type="number" id="interestRate" placeholder="Juros diário (%)" step="0.01" required>
-    <input type="date" id="loanDate" required>
+    <input type="hidden" id="editIndex" />
+    <input type="text" id="personName" placeholder="Nome da pessoa" required />
+    <input type="number" id="loanAmount" placeholder="Valor (R$)" step="0.01" required />
+    <input type="number" id="daysToPay" placeholder="Dias para pagar" required />
+    <input type="number" id="interestRate" placeholder="Juros diário (%)" step="0.01" required />
+    <input type="date" id="loanDate" required />
     <button class="add" type="submit" id="submitBtn">Adicionar</button>
   </form>
 </div>
 
 <div class="search-box">
-  <input type="text" id="searchInput" placeholder="🔍 Buscar por nome...">
+  <input type="text" id="searchInput" placeholder="🔍 Buscar por nome..." />
 </div>
 
 <div class="loan-list" id="loanList"></div>
+</div>
+
+<!-- Modal Ajuste de Valor -->
+<div id="adjustModal" class="modal">
+  <div class="modal-content">
+    <h2>Ajustar Valor do Empréstimo</h2>
+    <p id="adjustPerson"></p>
+    <input type="number" id="adjustInput" step="0.01" placeholder="Digite o valor do ajuste (+ ou -)" />
+    <div class="modal-buttons">
+      <button id="cancelAdjust" class="btn cancel">Cancelar</button>
+      <button id="confirmAdjust" class="btn confirm">Confirmar</button>
+    </div>
+    <p id="adjustError" class="error-msg"></p>
+  </div>
+</div>
 
 <script>
-document.getElementById('navToggle').addEventListener('click',()=>{
+document.getElementById('navToggle').addEventListener('click', () => {
   document.getElementById('navLinks').classList.toggle('show');
 });
 
-const $ = s => document.querySelector(s);
-function money(v){return 'R$ ' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2});}
-function parseNum(v){return parseFloat(v)||0;}
-function loadLoans(){return JSON.parse(localStorage.getItem('loansData')||'[]');}
-function saveLoans(d){localStorage.setItem('loansData',JSON.stringify(d));}
+const $ = (s) => document.querySelector(s);
+function money(v) {
+  return 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+}
+function parseNum(v) {
+  return parseFloat(v) || 0;
+}
+function loadLoans() {
+  return JSON.parse(localStorage.getItem('loansData') || '[]');
+}
+function saveLoans(d) {
+  localStorage.setItem('loansData', JSON.stringify(d));
+}
 
-function renderLoans(filter=''){
+function renderLoans(filter = '') {
   const list = $('#loanList');
-  const data = loadLoans().filter(l => l.personName.toLowerCase().includes(filter.toLowerCase()));
+  const data = loadLoans().filter((l) => l.personName.toLowerCase().includes(filter.toLowerCase()));
   list.innerHTML = '';
-  let sumPrincipal=0,sumWithInterest=0,sumPending=0,countPending=0;
-  const now=new Date();
-  data.forEach((loan,i)=>{
-    const principal=parseNum(loan.loanAmount);
-    const days=Number(loan.daysToPay);
-    const rate=parseNum(loan.interestRate);
-    const juros=principal*(rate/100)*days;
-    const totalPrev=principal+juros;
-    const due=new Date(loan.loanDate);
-    due.setDate(due.getDate()+days);
-    const diff=Math.floor((due-now)/(1000*60*60*24));
-    const atrasado=diff<0;
-    const multa=atrasado? totalPrev*0.02*(-diff):0;
-    const totalComMulta=totalPrev+multa;
-    sumPrincipal+=principal; sumWithInterest+=totalPrev;
-    if(atrasado){sumPending+=totalComMulta; countPending++;}
-
-    let statusText, statusClass, daysLeftText, daysLeftClass;
-    if (diff > 5) {
-      daysLeftText = `Faltam ${diff} dias`;
-      daysLeftClass = "ok";
-    } else if (diff >= 0) {
-      daysLeftText = `Faltam ${diff} dias (atenção)`;
-      daysLeftClass = "warn";
-    } else {
-      daysLeftText = `Atrasado há ${Math.abs(diff)} dias`;
-      daysLeftClass = "late";
+  let sumPrincipal = 0,
+    sumWithInterest = 0,
+    sumPending = 0,
+    countPending = 0;
+  const now = new Date();
+  data.forEach((loan, i) => {
+    const principal = parseNum(loan.loanAmount);
+    const days = Number(loan.daysToPay);
+    const rate = parseNum(loan.interestRate);
+    const juros = principal * (rate / 100) * days;
+    const totalPrev = principal + juros;
+    const due = new Date(loan.loanDate);
+    due.setDate(due.getDate() + days);
+    const diff = Math.floor((due - now) / (1000 * 60 * 60 * 24));
+    const atrasado = diff < 0;
+    const multa = atrasado ? totalPrev * 0.02 * -diff : 0;
+    const totalComMulta = totalPrev + multa;
+    sumPrincipal += principal;
+    sumWithInterest += totalPrev;
+    if (atrasado) {
+      sumPending += totalComMulta;
+      countPending++;
     }
 
-    const card=document.createElement('div');card.className='loan-card';
-    card.innerHTML=`
+    let daysLeftText, daysLeftClass;
+    if (diff > 5) {
+      daysLeftText = `Faltam ${diff} dias`;
+      daysLeftClass = 'ok';
+    } else if (diff >= 0) {
+      daysLeftText = `Faltam ${diff} dias (atenção)`;
+      daysLeftClass = 'warn';
+    } else {
+      daysLeftText = `Atrasado há ${Math.abs(diff)} dias`;
+      daysLeftClass = 'late';
+    }
+
+    const card = document.createElement('div');
+    card.className = 'loan-card';
+    card.innerHTML = `
       <div class="loan-row"><strong>Nome:</strong><div>${loan.personName}</div></div>
       <div class="loan-row"><strong>Data:</strong><div>${new Date(loan.loanDate).toLocaleDateString()}</div></div>
       <div class="loan-row"><strong>Valor:</strong><div>${money(principal)}</div></div>
@@ -370,142 +457,177 @@ function renderLoans(filter=''){
       <div class="loan-row"><strong>Total Previsto:</strong><div>${money(totalPrev)}</div></div>
       <div class="days-left ${daysLeftClass}">${daysLeftText}</div>
       <div class="loan-row"><strong>Status:</strong>
-        <div class="status ${atrasado?'late':'ok'}">${atrasado?`Atrasado (${Math.abs(diff)}d)`:'Em dia'}</div>
+        <div class="status ${atrasado ? 'late' : 'ok'}">${atrasado ? `Atrasado (${Math.abs(diff)}d)` : 'Em dia'}</div>
       </div>
       <div class="actions">
         <button class="edit" onclick="editLoan(${i})">Editar</button>
         <button class="delete" onclick="deleteLoan(${i})">Excluir</button>
-        <button class="adjust" onclick="adjustLoan(${i})">💰 Ajustar Valor</button>
+        <button class="adjust" onclick="openAdjustModal(${i})">💰 Ajustar Valor</button>
       </div>`;
     list.appendChild(card);
   });
-  $('#sumPrincipal').textContent=money(sumPrincipal);
-  $('#sumWithInterest').textContent=money(sumWithInterest);
-  $('#sumPending').textContent=money(sumPending);
-  $('#countPending').textContent=countPending;
+  $('#sumPrincipal').textContent = money(sumPrincipal);
+  $('#sumWithInterest').textContent = money(sumWithInterest);
+  $('#sumPending').textContent = money(sumPending);
+  $('#countPending').textContent = countPending;
 }
 
-function editLoan(i){
-  const loans=loadLoans();
-  const l=loans[i];
-  $('#personName').value=l.personName;
-  $('#loanAmount').value=l.loanAmount;
-  $('#daysToPay').value=l.daysToPay;
-  $('#interestRate').value=l.interestRate;
-  $('#loanDate').value=l.loanDate;
-  $('#editIndex').value=i;
-  $('#submitBtn').textContent='Salvar';
-}
-
-function deleteLoan(i){
-  if(!confirm('Excluir este empréstimo?'))return;
-  const loans=loadLoans();loans.splice(i,1);saveLoans(loans);renderLoans($('#searchInput').value);
-}
-
-function adjustLoan(i) {
+function editLoan(i) {
   const loans = loadLoans();
   const l = loans[i];
+  $('#personName').value = l.personName;
+  $('#loanAmount').value = l.loanAmount;
+  $('#daysToPay').value = l.daysToPay;
+  $('#interestRate').value = l.interestRate;
+  $('#loanDate').value = l.loanDate;
+  $('#editIndex').value = i;
+  $('#submitBtn').textContent = 'Salvar';
+}
 
-  const ajusteStr = prompt(
-    `Digite o valor do ajuste para ${l.personName}:\n(use número positivo para acrescentar ou negativo para subtrair)`
-  );
+function deleteLoan(i) {
+  if (!confirm('Excluir este empréstimo?')) return;
+  const loans = loadLoans();
+  loans.splice(i, 1);
+  saveLoans(loans);
+  renderLoans($('#searchInput').value);
+}
 
-  if (ajusteStr === null) return; // cancelado
+// === Modal Ajuste ===
+const adjustModal = document.getElementById('adjustModal');
+const adjustPerson = document.getElementById('adjustPerson');
+const adjustInput = document.getElementById('adjustInput');
+const adjustError = document.getElementById('adjustError');
+const cancelAdjust = document.getElementById('cancelAdjust');
+const confirmAdjust = document.getElementById('confirmAdjust');
+
+let currentAdjustIndex = null;
+
+function openAdjustModal(i) {
+  const loans = loadLoans();
+  const loan = loans[i];
+  currentAdjustIndex = i;
+  adjustPerson.textContent = `Pessoa: ${loan.personName}`;
+  adjustInput.value = '';
+  adjustError.textContent = '';
+  adjustModal.style.display = 'flex';
+  adjustInput.focus();
+}
+
+function closeAdjustModal() {
+  adjustModal.style.display = 'none';
+  currentAdjustIndex = null;
+}
+
+cancelAdjust.onclick = () => closeAdjustModal();
+
+confirmAdjust.onclick = () => {
+  const ajusteStr = adjustInput.value.trim();
+  if (ajusteStr === '') {
+    adjustError.textContent = 'Por favor, digite um valor de ajuste.';
+    return;
+  }
   const ajuste = parseFloat(ajusteStr);
-  if (isNaN(ajuste) || ajuste === 0) return alert("Valor inválido.");
+  if (isNaN(ajuste) || ajuste === 0) {
+    adjustError.textContent = 'Valor inválido. Digite um número diferente de zero.';
+    return;
+  }
 
-  // aplica ajuste
-  const novoValor = parseNum(l.loanAmount) + ajuste;
-  if (novoValor < 0) return alert("O valor final não pode ser negativo.");
+  const loans = loadLoans();
+  const loan = loans[currentAdjustIndex];
+  const novoValor = parseNum(loan.loanAmount) + ajuste;
+  if (novoValor < 0) {
+    adjustError.textContent = 'O valor final não pode ser negativo.';
+    return;
+  }
 
-  l.loanAmount = novoValor.toFixed(2);
+  loan.loanAmount = novoValor.toFixed(2);
 
-  // recalcula juros e total
-  const principal = parseNum(l.loanAmount);
-  const dias = Number(l.daysToPay);
-  const rate = parseNum(l.interestRate);
-  const juros = principal * (rate / 100) * dias;
-  const totalPrev = principal + juros;
-
-  // salva alteração
-  loans[i] = l;
+  loans[currentAdjustIndex] = loan;
   saveLoans(loans);
 
   alert(
-    `Empréstimo ajustado!\nNovo valor: ${money(principal)}\nTotal previsto: ${money(totalPrev)}`
+    `Empréstimo ajustado!\nNovo valor: ${money(novoValor)}`
   );
+  closeAdjustModal();
+  renderLoans($('#searchInput').value);
+};
 
-  renderLoans($("#searchInput").value);
-}
+// Fechar modal ao clicar fora do conteúdo
+window.onclick = function(event) {
+  if (event.target === adjustModal) {
+    closeAdjustModal();
+  }
+};
 
-
-$('#loanForm').addEventListener('submit',e=>{
+$('#loanForm').addEventListener('submit', (e) => {
   e.preventDefault();
-  const loans=loadLoans();
-  const newLoan={
-    personName:$('#personName').value,
-    loanAmount:$('#loanAmount').value,
-    daysToPay:$('#daysToPay').value,
-    interestRate:$('#interestRate').value,
-    loanDate:$('#loanDate').value
+  const loans = loadLoans();
+  const newLoan = {
+    personName: $('#personName').value,
+    loanAmount: $('#loanAmount').value,
+    daysToPay: $('#daysToPay').value,
+    interestRate: $('#interestRate').value,
+    loanDate: $('#loanDate').value,
   };
-  const idx=$('#editIndex').value;
-  if(idx){loans[idx]=newLoan;$('#submitBtn').textContent='Adicionar';$('#editIndex').value='';}
-  else loans.push(newLoan);
+  const idx = $('#editIndex').value;
+  if (idx) {
+    loans[idx] = newLoan;
+    $('#submitBtn').textContent = 'Adicionar';
+    $('#editIndex').value = '';
+  } else loans.push(newLoan);
   saveLoans(loans);
   e.target.reset();
   renderLoans($('#searchInput').value);
 });
 
-$('#searchInput').addEventListener('input',e=>renderLoans(e.target.value));
-document.addEventListener('DOMContentLoaded',()=>renderLoans());
+$('#searchInput').addEventListener('input', (e) => renderLoans(e.target.value));
+document.addEventListener('DOMContentLoaded', () => renderLoans());
 
 // === EXPORTAÇÃO ===
-function exportExcel(){
+function exportExcel() {
   const loans = loadLoans();
-  if(loans.length===0)return alert('Nenhum empréstimo para exportar.');
-  const data = loans.map(l=>{
-    const juros = parseNum(l.loanAmount)*(parseNum(l.interestRate)/100)*parseNum(l.daysToPay);
+  if (loans.length === 0) return alert('Nenhum empréstimo para exportar.');
+  const data = loans.map((l) => {
+    const juros = parseNum(l.loanAmount) * (parseNum(l.interestRate) / 100) * parseNum(l.daysToPay);
     return {
-      Nome:l.personName,
-      Data:new Date(l.loanDate).toLocaleDateString(),
-      Valor:l.loanAmount,
-      Dias:l.daysToPay,
-      Juros:l.interestRate+"%",
-      Total:(parseNum(l.loanAmount)+juros).toFixed(2)
+      Nome: l.personName,
+      Data: new Date(l.loanDate).toLocaleDateString(),
+      Valor: l.loanAmount,
+      Dias: l.daysToPay,
+      Juros: l.interestRate + '%',
+      Total: (parseNum(l.loanAmount) + juros).toFixed(2),
     };
   });
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.json_to_sheet(data);
-  XLSX.utils.book_append_sheet(wb, ws, "Empréstimos");
-  XLSX.writeFile(wb, "emprestimos.xlsx");
+  XLSX.utils.book_append_sheet(wb, ws, 'Empréstimos');
+  XLSX.writeFile(wb, 'emprestimos.xlsx');
 }
 
-function exportPDF(){
+function exportPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   doc.setFontSize(14);
-  doc.text("Relatório de Empréstimos", 14, 15);
+  doc.text('Relatório de Empréstimos', 14, 15);
   const loans = loadLoans();
-  const rows = loans.map(l=>{
-    const juros=parseNum(l.loanAmount)*(parseNum(l.interestRate)/100)*parseNum(l.daysToPay);
+  const rows = loans.map((l) => {
+    const juros = parseNum(l.loanAmount) * (parseNum(l.interestRate) / 100) * parseNum(l.daysToPay);
     return [
       l.personName,
       new Date(l.loanDate).toLocaleDateString(),
-      "R$ "+parseNum(l.loanAmount).toFixed(2),
+      'R$ ' + parseNum(l.loanAmount).toFixed(2),
       l.daysToPay,
-      l.interestRate+"%",
-      "R$ "+(parseNum(l.loanAmount)+juros).toFixed(2)
+      l.interestRate + '%',
+      'R$ ' + (parseNum(l.loanAmount) + juros).toFixed(2),
     ];
   });
   doc.autoTable({
     startY: 25,
-    head: [['Nome','Data','Valor','Dias','Juros','Total']],
+    head: [['Nome', 'Data', 'Valor', 'Dias', 'Juros', 'Total']],
     body: rows,
   });
-  doc.save("emprestimos.pdf");
+  doc.save('emprestimos.pdf');
 }
 </script>
-</div>
 </body>
 </html>
