@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Controle de Empréstimos</title>
+<style>
+:root {
+  --bg: #0a0f1f;
+  --card: #141c2f;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #27cbe0;
+  --success: #17db9a;
+  --danger: #ef4444;
+  --border: rgba(255, 255, 255, 0.432);
+  --radius: 12px;
+}
+
+.light-mode {
+  --bg: #f5f7fa;
+  --card: #ffffff;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --accent: #3b82f6;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --border: rgba(0, 0, 0, 0.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Inter", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding: 16px;
+}
+.container{
+  max-width: 800px;
+  margin: auto;
+}
+h1 {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 12px;
+}
+.top-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.summary-card {
+  flex: 1 1 160px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  text-align: center;
+}
+.summary-card .label { color: var(--muted); font-size: 0.8rem; }
+.summary-card .value { font-size: 1.1rem; font-weight: bold; margin-top: 4px; color: var(--accent); }
+
+.form-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 18px;
+}
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+form input {
+  flex: 1 1 180px;
+  padding: 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+}
+button.add {
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  background: var(--accent);
+  color: white;
+  flex: 1 1 100px;
+}
+.search-box {
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: center;
+}
+.search-box input {
+  width: 100%;
+  max-width: 500px;
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  text-align: center;
+}
+.loan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.loan-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+.loan-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0;
+  font-size: 0.9rem;
+}
+.loan-row strong { color: var(--muted); }
+.actions {
+  display: flex;
+  justify-content: end;
+  gap: 6px;
+  margin-top: 8px;
+}
+.status {
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+.status.ok { background: rgba(16,185,129,0.1); color: var(--success); }
+.status.late { background: rgba(239,68,68,0.1); color: var(--danger); }
+.days-left {
+  font-weight: bold;
+  margin-top: 6px;
+}
+.days-left.ok { color: var(--success); }
+.days-left.warn { color: #facc15; }
+.days-left.late { color: var(--danger); }
+
+button.edit {
+  background: var(--success);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  cursor: pointer;
+}
+button.delete {
+  background: var(--danger);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  cursor: pointer;
+}
+button.adjust {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.whatsapp-link {
+  background-color: #25d366;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-block;
+  margin-top: 10px;
+  cursor: pointer;
+}
+.whatsapp-link:hover {
+  background-color: #1ebe57;
+}
+
+@media (max-width: 600px) {
+  .loan-row { flex-direction: column; align-items: flex-start; }
+  form input, button.add { flex: 1 1 100%; }
+}
+
+
+
+
+/* ====== Menu lateral ====== */
+#sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 100%;
+  width: 230px;
+  background: var(--card-dark);
+  border-right: 1px solid var(--border);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 20;
+}
+#sidebar.open {
+  transform: translateX(0);
+}
+body.light #sidebar {
+  background: var(--card-light);
+  border-color: var(--border-light);
+}
+
+#sidebar ul {
+  list-style: none;
+  padding: 20px;
+}
+#sidebar li {
+  margin: 12px 0;
+}
+#sidebar a {
+  text-decoration: none;
+  color: inherit;
+  font-weight: 500;
+  display: block;
+}
+#openMenu {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  z-index: 30;
+}
+#closeMenu {
+  background: var(--danger);
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+</style>
+</head>
+<body>
+
+<button id="openMenu">☰</button>
+<aside id="sidebar">
+  <button id="closeMenu">✖</button>
+  <ul>
+    <li><a href="index.html" class="active">🏠 Home</a></li>
+    <li><a href="dashboard.html">📊 Dashboard</a></li>
+    <li><a href="emprestimos.html">💰 Empréstimos</a></li>
+    <li><a href="historico.html">🧾 Histórico</a></li>
+    <li><a href="#">⚙️ Configurações</a></li>
+  </ul>
+</aside>
+
+<h1>📘 Controle de Empréstimos</h1>
+
+<div style="text-align: center; margin-bottom: 20px;">
+  <button id="toggleThemeBtn" style="
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+  ">Modo Claro</button>
+</div>
+
+<div class="top-summary">
+  <div class="summary-card">
+    <div class="label">Total Emprestado</div>
+    <div class="value" id="sumPrincipal">R$ 0,00</div>
+  </div>
+  <div class="summary-card">
+    <div class="label">Total com Juros</div>
+    <div class="value" id="sumWithInterest">R$ 0,00</div>
+  </div>
+  <div class="summary-card">
+    <div class="label">Total Pendente</div>
+    <div class="value" id="sumPending">R$ 0,00</div>
+  </div>
+  <div class="summary-card">
+    <div class="label">Pendentes</div>
+    <div class="value" id="countPending">0</div>
+  </div>
+</div>
+
+<div class="form-card">
+  <form id="loanForm">
+    <input type="hidden" id="editIndex" />
+    <input type="text" id="personName" placeholder="Nome da pessoa" required />
+    <input type="number" id="loanAmount" placeholder="Valor (R$)" step="0.01" required />
+    <input type="number" id="daysToPay" placeholder="Dias para pagar" required />
+    <input type="number" id="interestRate" placeholder="Juros diário (%)" step="0.01" required />
+    <input type="date" id="loanDate" required />
+    <input type="tel" id="phoneNumber" placeholder="Telefone (ex: 5511999999999)" pattern="[0-9]{10,15}" />
+    <button class="add" type="submit" id="submitBtn">Adicionar</button>
+  </form>
+</div>
+
+<div class="search-box">
+  <input type="text" id="searchInput" placeholder="🔍 Buscar por nome..." />
+</div>
+
+<div class="loan-list" id="loanList"></div>
+
+<script>
+  const $ = (s) => document.querySelector(s);
+  function money(v) {
+    return 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+  }
+  function parseNum(v) {
+    return parseFloat(v) || 0;
+  }
+  function loadLoans() {
+    return JSON.parse(localStorage.getItem('loansData') || '[]');
+  }
+  function saveLoans(d) {
+    localStorage.setItem('loansData', JSON.stringify(d));
+  }
+
+  function renderLoans(filter = '') {
+    const list = document.getElementById('loanList');
+    const data = loadLoans().filter((l) => l.personName.toLowerCase().includes(filter.toLowerCase()));
+    list.innerHTML = '';
+    let sumPrincipal = 0,
+      sumWithInterest = 0,
+      sumPending = 0,
+      countPending = 0;
+    const now = new Date();
+
+    data.forEach((loan, i) => {
+      const principal = parseNum(loan.loanAmount);
+      const days = Number(loan.daysToPay);
+      const rate = parseNum(loan.interestRate);
+      const juros = principal * (rate / 100) * days;
+      const totalPrev = principal + juros;
+      const due = new Date(loan.loanDate);
+      due.setDate(due.getDate() + days);
+      const diff = Math.floor((due - now) / (1000 * 60 * 60 * 24));
+      const atrasado = diff < 0;
+      const multa = atrasado ? totalPrev * 0.02 * -diff : 0;
+      const totalComMulta = totalPrev + multa;
+
+      sumPrincipal += principal;
+      sumWithInterest += totalPrev;
+      if (atrasado) {
+        sumPending += totalComMulta;
+        countPending++;
+      }
+
+      let daysLeftText, daysLeftClass;
+      if (diff > 5) {
+        daysLeftText = `Faltam ${diff} dias`;
+        daysLeftClass = 'ok';
+      } else if (diff >= 0) {
+        daysLeftText = `Faltam ${diff} dias (atenção)`;
+        daysLeftClass = 'warn';
+      } else {
+        daysLeftText = `Atrasado há ${Math.abs(diff)} dias`;
+        daysLeftClass = 'late';
+      }
+
+      let mensagemWhatsApp =
+        `Olá ${loan.personName},\n` +
+        `Seu empréstimo de R$ ${principal.toFixed(2)} feito em ${new Date(loan.loanDate).toLocaleDateString()} ` +
+        `vence em ${days} dias com juros diário de ${rate}%. ` +
+        `Total previsto para pagamento: R$ ${totalPrev.toFixed(2)}.`;
+
+      if (atrasado) {
+        mensagemWhatsApp += `\n\nATENÇÃO: Seu empréstimo está atrasado há ${Math.abs(diff)} dias!`;
+      } else if (diff === 0) {
+        mensagemWhatsApp += `\n\nSeu empréstimo vence hoje!`;
+      }
+
+      const linkWhatsApp = loan.phoneNumber
+        ? `https://wa.me/${loan.phoneNumber}?text=${encodeURIComponent(mensagemWhatsApp)}`
+        : null;
+
+      const card = document.createElement('div');
+      card.className = 'loan-card';
+      card.innerHTML = `
+        <div class="loan-row"><strong>Nome:</strong><div>${loan.personName}</div></div>
+        <div class="loan-row"><strong>Data:</strong><div>${new Date(loan.loanDate).toLocaleDateString()}</div></div>
+        <div class="loan-row"><strong>Valor:</strong><div>${money(principal)}</div></div>
+        <div class="loan-row"><strong>Juros:</strong><div>${rate}%</div></div>
+        <div class="loan-row"><strong>Total Previsto:</strong><div>${money(totalPrev)}</div></div>
+        <div class="days-left ${daysLeftClass}">${daysLeftText}</div>
+        <div class="loan-row"><strong>Status:</strong>
+          <div class="status ${atrasado ? 'late' : 'ok'}">${atrasado ? `Atrasado (${Math.abs(diff)}d)` : 'Em dia'}</div>
+        </div>
+        <div class="actions">
+          <button class="edit" onclick="editLoan(${i})">Editar</button>
+          <button class="delete" onclick="deleteLoan(${i})">Excluir</button>
+          <button class="adjust" onclick="adjustLoan(${i})">💰 Ajustar Valor</button>
+          ${linkWhatsApp ? `<a href="${linkWhatsApp}" target="_blank" rel="noopener noreferrer" class="whatsapp-link">📲 Enviar WhatsApp</a>` : ''}
+        </div>
+      `;
+      list.appendChild(card);
+    });
+
+    document.getElementById('sumPrincipal').textContent = money(sumPrincipal);
+    document.getElementById('sumWithInterest').textContent = money(sumWithInterest);
+    document.getElementById('sumPending').textContent = money(sumPending);
+    document.getElementById('countPending').textContent = countPending;
+  }
+
+  function editLoan(i) {
+    const loans = loadLoans();
+    const l = loans[i];
+    $('#personName').value = l.personName;
+    $('#loanAmount').value = l.loanAmount;
+    $('#daysToPay').value = l.daysToPay;
+    $('#interestRate').value = l.interestRate;
+    $('#loanDate').value = l.loanDate;
+    $('#phoneNumber').value = l.phoneNumber || '';
+    $('#editIndex').value = i;
+    $('#submitBtn').textContent = 'Salvar';
+  }
+
+  function deleteLoan(i) {
+    if (!confirm('Excluir este empréstimo?')) return;
+    const loans = loadLoans();
+    loans.splice(i, 1);
+    saveLoans(loans);
+    renderLoans($('#searchInput').value);
+  }
+
+  function adjustLoan(i) {
+    const loans = loadLoans();
+    const l = loans[i];
+
+    const ajusteStr = prompt(
+      `Digite o valor do ajuste para ${l.personName}:\n(use número positivo para acrescentar ou negativo para subtrair)`
+    );
+
+    if (ajusteStr === null) return;
+    const ajuste = parseFloat(ajusteStr);
+    if (isNaN(ajuste) || ajuste === 0) return alert('Valor inválido.');
+
+    const novoValor = parseNum(l.loanAmount) + ajuste;
+    if (novoValor < 0) return alert('O valor final não pode ser negativo.');
+
+    l.loanAmount = novoValor.toFixed(2);
+    loans[i] = l;
+    saveLoans(loans);
+    alert(`Empréstimo ajustado!\nNovo valor: ${money(novoValor)}`);
+    renderLoans($('#searchInput').value);
+  }
+
+  $('#loanForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const loans = loadLoans();
+    const newLoan = {
+      personName: $('#personName').value,
+      loanAmount: $('#loanAmount').value,
+      daysToPay: $('#daysToPay').value,
+      interestRate: $('#interestRate').value,
+      loanDate: $('#loanDate').value,
+      phoneNumber: $('#phoneNumber').value.trim(),
+    };
+    const idx = $('#editIndex').value;
+    if (idx) {
+      loans[idx] = newLoan;
+      $('#submitBtn').textContent = 'Adicionar';
+      $('#editIndex').value = '';
+    } else {
+      loans.push(newLoan);
+    }
+    saveLoans(loans);
+    e.target.reset();
+    renderLoans($('#searchInput').value);
+  });
+
+  $('#searchInput').addEventListener('input', (e) => renderLoans(e.target.value));
+  document.addEventListener('DOMContentLoaded', () => renderLoans());
+
+  // --- Tema claro/escuro ---
+  const toggleBtn = document.getElementById('toggleThemeBtn');
+  const body = document.body;
+
+  function setTheme(isLight) {
+    if (isLight) {
+      body.classList.add('light-mode');
+      toggleBtn.textContent = 'Modo Escuro';
+      localStorage.setItem('theme', 'light');
+    } else {
+      body.classList.remove('light-mode');
+      toggleBtn.textContent = 'Modo Claro';
+      localStorage.setItem('theme', 'dark');
+    }
+  }
+
+  // Verificar preferência salva
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'light') {
+    setTheme(true);
+  } else {
+    setTheme(false);
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    const isLight = body.classList.contains('light-mode');
+    setTheme(!isLight);
+  });
+
+  const sidebar = document.getElementById('sidebar');
+document.getElementById('openMenu').addEventListener('click', () => sidebar.classList.add('open'));
+document.getElementById('closeMenu').addEventListener('click', () => sidebar.classList.remove('open'));
+</script>
+</div>
+</body>
+</html>
