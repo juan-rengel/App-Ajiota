@@ -1,0 +1,357 @@
+/* ==========================
+   ESTILOS GERAIS
+========================== */
+:root {
+  --bg-light: #f3f4f6;
+  --card-light: #ffffff;
+  --text-light: #222;
+  --accent-light: #2563eb;
+
+  --bg-dark: #0f172a;
+  --card-dark: #1e293b;
+  --text-dark: #e2e8f0;
+  --accent-dark: #3b82f6;
+
+  --radius: 14px;
+  --transition: 0.3s ease;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  margin: 0;
+  background: var(--bg-light);
+  color: var(--text-light);
+  transition: background var(--transition), color var(--transition);
+}
+
+/* ==========================
+   MODO ESCURO
+========================== */
+body.dark {
+  background: var(--bg-dark);
+  color: var(--text-dark);
+}
+
+body.dark .topbar {
+  background: var(--card-dark);
+  color: var(--text-dark);
+}
+
+body.dark .form-card,
+body.dark .loan-card,
+body.dark .summary-card {
+  background: var(--card-dark);
+  color: var(--text-dark);
+  box-shadow: 0 0 10px rgba(255,255,255,0.05);
+}
+
+body.dark .sidebar {
+  background: #0b1120;
+}
+
+/* ==========================
+   TOPO
+========================== */
+.topbar {
+  background: var(--card-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  transition: background var(--transition);
+}
+
+.topbar h1 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.menu-btn, .theme-btn {
+  font-size: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ==========================
+   SIDEBAR
+========================== */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -250px;
+  width: 250px;
+  height: 100vh;
+  background: var(--card-light);
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+  transition: left var(--transition);
+  z-index: 1000;
+  padding: 10px 0;
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar ul li a {
+  display: block;
+  padding: 12px 18px;
+  text-decoration: none;
+  color: inherit;
+  transition: background var(--transition);
+}
+
+.sidebar ul li a:hover,
+.sidebar ul li a.active {
+  background: var(--accent-light);
+  color: #fff;
+  border-radius: var(--radius);
+}
+
+.close-btn {
+  font-size: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ==========================
+   CONTAINER PRINCIPAL
+========================== */
+.container {
+  padding: 20px;
+}
+
+.top-summary {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.summary-card {
+  background: var(--card-light);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  flex: 1;
+  min-width: 130px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: background var(--transition);
+}
+
+.summary-card .value {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+/* ==========================
+   FORMULÁRIO
+========================== */
+.form-card {
+  background: var(--card-light);
+  border-radius: var(--radius);
+  padding: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+  transition: background var(--transition);
+}
+
+.form-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+input, button {
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+button.add {
+  background: var(--accent-light);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button.add:hover {
+  background: var(--accent-dark);
+}
+
+/* ==========================
+   LISTA DE EMPRÉSTIMOS
+========================== */
+.loan-list {
+  display: grid;
+  gap: 15px;
+}
+
+.loan-card {
+  background: var(--card-light);
+  border-radius: var(--radius);
+  padding: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: transform 0.2s ease;
+}
+
+.loan-card:hover {
+  transform: scale(1.01);
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.card-body p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.card-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+button.pay-btn {
+  background: #16a34a;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button.pay-btn:hover {
+  background: #15803d;
+}
+
+button.delete-btn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button.delete-btn:hover {
+  background: #b91c1c;
+}
+
+/* ==========================
+   SEARCH BOX
+========================== */
+.search-box {
+  margin-bottom: 15px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 1px solid #aaa;
+}
+
+/* ==========================
+   TOAST
+========================== */
+.toast {
+  visibility: hidden;
+  min-width: 250px;
+  background: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: var(--radius);
+  padding: 14px;
+  position: fixed;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.5s, visibility 0.5s;
+}
+
+.toast.show {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* ==========================
+   RESPONSIVIDADE
+========================== */
+@media (max-width: 768px) {
+  .top-summary {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 50%;
+  }
+
+  .loan-card {
+    font-size: 14px;
+  }
+
+  .topbar h1 {
+    font-size: 16px;
+  }
+}
+
+
+
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.modal-content {
+  background: var(--card);
+  color: var(--text);
+  padding: 20px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+}
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+.btn-cancel, .btn-save {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.btn-cancel {
+  background: #444;
+  color: white;
+}
+.btn-save {
+  background: #007bff;
+  color: white;
+}
