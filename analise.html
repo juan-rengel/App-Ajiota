@@ -1,444 +1,211 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Controle de Empréstimos — Dark</title>
-<style>
-  :root{
-    --bg:#0f1720;
-    --card:#0b1220;
-    --muted:#9aa6b2;
-    --accent:#3b82f6;
-    --accent-2:#60a5fa;
-    --success:#22c55e;
-    --danger:#ef4444;
-    --glass: rgba(255,255,255,0.03);
-    --border: rgba(255,255,255,0.06);
-  }
-
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%}
-  body{
-    font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
-    background: linear-gradient(180deg,#071025 0%, #071529 100%);
-    color:#e6eef8;
-    padding:18px;
-  }
-
-  /* WRAPPER */
-  .wrap{
-    max-width:1200px;
-    margin:0 auto;
-    padding-top:100px; /* space for fixed header */
-  }
-
-  /* FIXED TOP SUMMARY BAR */
-  .topbar{
-    position:fixed;
-    top:12px;
-    left:50%;
-    transform:translateX(-50%);
-    width:calc(100% - 36px);
-    max-width:1200px;
-    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border:1px solid var(--border);
-    box-shadow: 0 8px 30px rgba(2,6,23,0.6);
-    padding:12px;
-    border-radius:12px;
-    display:flex;
-    gap:12px;
-    align-items:center;
-    z-index:60;
-    backdrop-filter: blur(6px);
-  }
-  .brand{
-    display:flex;
-    gap:10px;
-    align-items:center;
-    min-width:220px;
-  }
-  .logo{
-    width:44px;height:44px;border-radius:10px;
-    background:linear-gradient(135deg,var(--accent),var(--accent-2));
-    display:flex;align-items:center;justify-content:center;font-weight:700;color:#021126;
-    box-shadow: 0 6px 18px rgba(59,130,246,0.15);
-  }
-  .brand h1{font-size:16px;line-height:1;color:#eaf2ff}
-  .summary{display:flex;gap:10px;flex:1;align-items:center;overflow:auto;padding-right:8px}
-  .card{
-    min-width:170px;
-    background:var(--card);
-    border:1px solid var(--border);
-    padding:10px 12px;border-radius:8px;
-  }
-  .card .label{font-size:12px;color:var(--muted);margin-bottom:6px}
-  .card .value{font-size:15px;color:#f8fafc;font-weight:700}
-
-  .controls{display:flex;gap:8px;align-items:center}
-  .controls input[type=number]{
-    width:110px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--glass);color:var(--muted)
-  }
-  .controls button{
-    background:transparent;border:1px solid var(--border);padding:8px 10px;border-radius:8px;color:var(--accent);
-    cursor:pointer;font-weight:600;
-  }
-
-  /* MAIN CARD */
-  .card-main{
-    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border:1px solid var(--border);
-    border-radius:12px;padding:18px;margin-bottom:18px;
-    box-shadow: 0 8px 30px rgba(2,6,23,0.45);
-  }
-
-  /* form */
-  form{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:end}
-  label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
-  input[type=text],input[type=date],input[type=number],#searchInput{
-    width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);
-  }
-  .full{grid-column:span 4}
-  .btn{
-    background:linear-gradient(180deg,var(--accent),var(--accent-2));
-    color:#021126;border:none;padding:10px 12px;border-radius:8px;font-weight:700;cursor:pointer;
-  }
-  .btn.secondary{background:transparent;border:1px solid var(--border);color:var(--muted)}
-  .preview{font-size:13px;color:var(--muted);margin-left:8px;white-space:nowrap}
-
-  /* table */
-  .table-wrap{overflow:auto;margin-top:12px;border-radius:8px;border:1px solid var(--border)}
-  table{width:100%;border-collapse:collapse;min-width:1100px}
-  th,td{text-align:center;padding:10px;border-bottom:1px dashed rgba(255,255,255,0.03);font-size:13px;color:var(--muted)}
-  th{background:transparent;color:var(--accent);position:sticky;top:64px} /* sticky header inside container */
-  td.value{color:#eaf6ff;font-weight:700}
-  .actions button{margin:0 6px;padding:6px 8px;border-radius:6px;border:none;cursor:pointer}
-  .edit{background:var(--success);color:#021126}
-  .del{background:var(--danger);color:#fff}
-  .status-pendente{color:var(--danger);font-weight:700}
-  .status-ok{color:var(--success);font-weight:700}
-
-  /* responsive */
-  @media(max-width:980px){
-    form{grid-template-columns:repeat(2,1fr)}
-    .full{grid-column:span 2}
-    .topbar{padding:10px}
-  }
-  @media(max-width:520px){
-    .topbar{flex-direction:column;align-items:stretch;gap:10px}
-    .brand{min-width:unset}
-    form{grid-template-columns:1fr}
-    .full{grid-column:span 1}
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard Financeiro</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #0a0f1f;
+      --card: #141c2f;
+      --text: #e2e8f0;
+      --accent: #007bff;
+      --success: #00c897;
+      --danger: #f87171;
+    }
+    body {
+      font-family: "Poppins", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    h1 {
+      color: var(--accent);
+    }
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+    }
+    .summary-item {
+      background: #182038;
+      padding: 14px;
+      border-radius: 12px;
+      text-align: center;
+    }
+    .summary-item h3 {
+      margin: 8px 0 4px;
+      font-size: 1.4em;
+    }
+    .summary-item span {
+      font-size: 0.9em;
+      color: #a0aec0;
+    }
+    canvas {
+      width: 100% !important;
+      height: 280px !important;
+    }
+    .btn-back {
+      background: var(--accent);
+      border: none;
+      padding: 8px 14px;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .history-list {
+      margin-top: 15px;
+    }
+    .history-item {
+      background: #1b243b;
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .history-item strong {
+      color: var(--accent);
+    }
+  </style>
 </head>
 <body>
-  <!-- FIXED TOP SUMMARY -->
-  <div class="topbar" role="banner">
-    <div class="brand">
-      <div class="logo">L&E</div>
-      <div>
-        <div style="font-size:12px;color:var(--muted)">Controle de Empréstimos</div>
-        <div style="font-size:13px;color:#eaf2ff;font-weight:700">Painel</div>
-      </div>
-    </div>
+  <header>
+    <h1>📈 Dashboard Financeiro</h1>
+    <button class="btn-back" onclick="window.location.href='index.html'">⬅️ Voltar</button>
+  </header>
 
-    <div class="summary" aria-live="polite">
-      <div class="card">
-        <div class="label">Total emprestado</div>
-        <div id="sumPrincipal" class="value">R$ 0,00</div>
-      </div>
-
-      <div class="card">
-        <div class="label">Total previsto (juros por dias p/ pagar)</div>
-        <div id="sumWithInterest" class="value">R$ 0,00</div>
-      </div>
-
-      <div class="card">
-        <div class="label">Total pendente (c/ multa)</div>
-        <div id="sumPending" class="value">R$ 0,00</div>
-      </div>
-
-      <div class="card">
-        <div class="label">Empréstimos pendentes</div>
-        <div id="countPending" class="value">0</div>
-      </div>
-    </div>
-
-    <div class="controls" aria-hidden="false">
-      <input id="globalLateRate" type="number" step="0.01" value="2" title="Multa diária % (aplicada sobre total previsto)">
-      <button id="exportJson" title="Exportar JSON">Exportar</button>
-      <button id="importJson" title="Importar JSON">Importar</button>
-    </div>
+  <div class="card">
+    <h2>Resumo Geral</h2>
+    <div class="grid" id="summary"></div>
   </div>
 
-  <!-- MAIN -->
-  <div class="wrap">
-    <div class="card-main" role="main">
-      <form id="loanForm" autocomplete="off">
-        <input type="hidden" id="editIndex" value="">
-        <div>
-          <label for="personName">Nome da Pessoa</label>
-          <input id="personName" type="text" required>
-        </div>
-
-        <div>
-          <label for="loanDate">Data do Empréstimo</label>
-          <input id="loanDate" type="date" required>
-        </div>
-
-        <div>
-          <label for="loanAmount">Valor (R$)</label>
-          <input id="loanAmount" type="number" step="0.01" min="0" required>
-        </div>
-
-        <div>
-          <label for="daysToPay">Dias para Pagar</label>
-          <input id="daysToPay" type="number" min="0" required>
-        </div>
-
-        <div class="full">
-          <label for="interestRate">Juros diário (%) (usado para calcular juros previstos)</label>
-          <input id="interestRate" type="number" step="0.01" value="0" required>
-        </div>
-
-        <div style="display:flex;gap:8px;align-items:center" class="full">
-          <button class="btn" type="submit" id="submitBtn">Adicionar Empréstimo</button>
-          <button type="button" class="btn secondary" id="clearAll">Limpar histórico</button>
-          <div style="margin-left:auto" class="preview" id="livePreview">Juros previsto: R$ 0,00 — Total: R$ 0,00</div>
-        </div>
-      </form>
-
-      <div style="margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <input id="searchInput" placeholder="🔍 Buscar por nome..." style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted)">
-        <div style="color:var(--muted);font-size:13px">Tema: <strong style="color:var(--accent)">Dark</strong></div>
-      </div>
-
-      <div class="table-wrap" aria-live="polite">
-        <table id="loansTable" role="table">
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Data</th>
-              <th>Valor</th>
-              <th>Dias p/ Pagar</th>
-              <th>Vencimento</th>
-              <th>Juros %</th>
-              <th>Juros (R$)</th>
-              <th>Dias restantes/atraso</th>
-              <th>Multa (R$)</th>
-              <th>Total previsto (R$)</th>
-              <th>Total c/ multa (R$)</th>
-              <th>Status</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
+  <div class="card">
+    <h2>Gráficos</h2>
+    <canvas id="chartStatus"></canvas>
+    <canvas id="chartMonthly"></canvas>
   </div>
 
-<script>
-/* ---------- util ---------- */
-const $ = s => document.querySelector(s);
-const $$ = s => document.querySelectorAll(s);
-function money(v){ return 'R$ ' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function parseNum(v){ const n = Number(v); return isNaN(n) ? 0 : n; }
-function saveLoans(loans){ localStorage.setItem('loansData', JSON.stringify(loans)); }
-function loadLoans(){ const d = localStorage.getItem('loansData'); return d ? JSON.parse(d) : []; }
-function addDays(date, days){ const d = new Date(date); d.setDate(d.getDate() + Number(days)); return d; }
-function daysBetween(a,b){ return Math.floor((new Date(b) - new Date(a)) / (1000*60*60*24)); }
-function fmt(d){ const dt = new Date(d); if(isNaN(dt)) return '-'; return dt.toLocaleDateString('pt-BR'); }
+  <div class="card">
+    <h2>Últimos Pagamentos</h2>
+    <div class="history-list" id="recentHistory"></div>
+  </div>
 
-/* ---------- rendering & calc ---------- */
-function renderLoans(filter=''){
-  const loans = loadLoans();
-  const tbody = $('#loansTable tbody');
-  tbody.innerHTML = '';
-  const now = new Date();
-  let sumPrincipal = 0, sumWithInterest = 0, sumPending = 0, countPending = 0;
-  const lateRateGlobal = parseNum($('#globalLateRate').value);
+  <script>
+    function parseNum(v) {
+      return Number(String(v).replace(/[^\d.-]/g, "")) || 0;
+    }
 
-  const filtered = loans.filter(l => l.personName.toLowerCase().includes(filter.toLowerCase()));
+    function loadLoans() {
+      return JSON.parse(localStorage.getItem("loans") || "[]");
+    }
 
-  filtered.forEach((loan, idx) => {
-    const principal = parseNum(loan.loanAmount);
-    const daysToPay = Number(loan.daysToPay) || 0;
-    const interestRate = parseNum(loan.interestRate);
+    function loadHistory() {
+      return JSON.parse(localStorage.getItem("loanHistory") || "[]");
+    }
 
-    // juros baseado na quantidade de dias para pagar (pré-contratado)
-    const jurosPrevistos = principal * (interestRate/100) * daysToPay;
-    const totalPrevisto = principal + jurosPrevistos;
+    const loans = loadLoans();
+    const history = loadHistory();
 
-    // vencimento e atraso
-    const dueDate = addDays(loan.loanDate, daysToPay);
-    const daysUntilDue = daysBetween(now, dueDate); // positive = days left
-    const diasAtraso = Math.max(0, -daysUntilDue);
+    const totalEmprestado = loans.reduce((sum, l) => sum + parseNum(l.loanAmount), 0);
+    const totalPago = history.reduce((sum, h) => sum + parseNum(h.totalPaid), 0);
+    const jurosGanhos = totalPago - totalEmprestado;
+    const ativos = loans.length;
+    const pagos = history.length;
 
-    // MULTA por atraso APLICADA SOBRE O TOTAL PREVISTO (opção A)
-    const multaAtraso = totalPrevisto * (lateRateGlobal/100) * diasAtraso;
-    const totalComMulta = totalPrevisto + multaAtraso;
+    // Resumo
+    const summaryDiv = document.getElementById("summary");
+    const summaryData = [
+      { label: "Total Emprestado", value: `R$ ${totalEmprestado.toFixed(2)}` },
+      { label: "Total Recebido", value: `R$ ${totalPago.toFixed(2)}` },
+      { label: "Juros Ganhos", value: `R$ ${jurosGanhos.toFixed(2)}` },
+      { label: "Empréstimos Ativos", value: ativos },
+      { label: "Pagos", value: pagos }
+    ];
+    summaryDiv.innerHTML = summaryData
+      .map(
+        (s) => `
+      <div class="summary-item">
+        <h3>${s.value}</h3>
+        <span>${s.label}</span>
+      </div>
+    `
+      )
+      .join("");
 
-    // sums
-    sumPrincipal += principal;
-    sumWithInterest += totalPrevisto;
-    if(daysUntilDue < 0){ sumPending += totalComMulta; countPending += 1; }
+    // Gráfico de status
+    new Chart(document.getElementById("chartStatus"), {
+      type: "doughnut",
+      data: {
+        labels: ["Ativos", "Pagos"],
+        datasets: [
+          {
+            data: [ativos, pagos],
+            backgroundColor: ["#007bff", "#00c897"],
+          },
+        ],
+      },
+    });
 
-    const tr = document.createElement('tr');
-    const td = (text, cls) => { const c = document.createElement('td'); c.textContent = text; if(cls) c.className = cls; return c; };
+    // Gráfico mensal
+    const monthly = {};
+    history.forEach((h) => {
+      const d = new Date(h.paymentDate);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      monthly[key] = (monthly[key] || 0) + parseNum(h.totalPaid);
+    });
 
-    tr.appendChild(td(loan.personName));
-    tr.appendChild(td(fmt(loan.loanDate)));
-    tr.appendChild(td(money(principal), 'value'));
-    tr.appendChild(td(daysToPay));
-    tr.appendChild(td(fmt(dueDate)));
-    tr.appendChild(td(interestRate.toFixed(2) + '%'));
-    tr.appendChild(td(money(jurosPrevistos)));
-    tr.appendChild(td(daysUntilDue >= 0 ? (daysUntilDue + ' dias') : (diasAtraso + ' dias de atraso')));
-    tr.appendChild(td(money(multaAtraso)));
-    tr.appendChild(td(money(totalPrevisto)));
-    tr.appendChild(td(money(totalComMulta)));
-    const st = document.createElement('td');
-    st.textContent = daysUntilDue < 0 ? 'Pendente' : 'Em dia';
-    st.className = daysUntilDue < 0 ? 'status-pendente' : 'status-ok';
-    tr.appendChild(st);
+    new Chart(document.getElementById("chartMonthly"), {
+      type: "bar",
+      data: {
+        labels: Object.keys(monthly),
+        datasets: [
+          {
+            label: "Pagamentos por Mês",
+            data: Object.values(monthly),
+            backgroundColor: "#007bff",
+          },
+        ],
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+          },
+        },
+      },
+    });
 
-    // actions
-    const actions = document.createElement('td');
-    actions.className = 'actions';
-    const bEdit = document.createElement('button'); bEdit.textContent='Editar'; bEdit.className='edit';
-    bEdit.onclick = ()=> fillFormForEdit(idx);
-    const bDel = document.createElement('button'); bDel.textContent='Excluir'; bDel.className='del';
-    bDel.onclick = ()=> { if(confirm('Excluir este empréstimo?')){ removeLoan(idx); renderLoans($('#searchInput').value); } };
-    actions.appendChild(bEdit); actions.appendChild(bDel);
-    tr.appendChild(actions);
-
-    tbody.appendChild(tr);
-  });
-
-  // update summary (fixed top)
-  $('#sumPrincipal').textContent = money(sumPrincipal);
-  $('#sumWithInterest').textContent = money(sumWithInterest);
-  $('#sumPending').textContent = money(sumPending);
-  $('#countPending').textContent = countPending;
-}
-
-/* ---------- actions ---------- */
-function addOrUpdateLoan(loan){
-  const loans = loadLoans();
-  const editIndex = $('#editIndex').value;
-  if(editIndex !== ''){
-    loans[Number(editIndex)] = loan;
-    $('#editIndex').value = '';
-    $('#submitBtn').textContent = 'Adicionar Empréstimo';
-  } else {
-    loans.push(loan);
-  }
-  saveLoans(loans);
-}
-
-function removeLoan(idx){
-  const loans = loadLoans();
-  loans.splice(idx,1);
-  saveLoans(loans);
-}
-
-function fillFormForEdit(idx){
-  const loans = loadLoans();
-  const loan = loans[idx];
-  $('#personName').value = loan.personName;
-  $('#loanDate').value = loan.loanDate;
-  $('#loanAmount').value = loan.loanAmount;
-  $('#daysToPay').value = loan.daysToPay;
-  $('#interestRate').value = loan.interestRate;
-  $('#editIndex').value = idx;
-  $('#submitBtn').textContent = 'Salvar Alterações';
-  updateLivePreview();
-}
-
-function clearForm(){
-  $('#loanForm').reset();
-  $('#editIndex').value = '';
-  $('#submitBtn').textContent = 'Adicionar Empréstimo';
-  updateLivePreview();
-}
-
-function updateLivePreview(){
-  const principal = parseNum($('#loanAmount').value);
-  const daysToPay = parseNum($('#daysToPay').value);
-  const interestRate = parseNum($('#interestRate').value);
-  const jurosPrevistos = principal * (interestRate/100) * daysToPay;
-  const totalPrevisto = principal + jurosPrevistos;
-  $('#livePreview').textContent = `Juros previsto: ${money(jurosPrevistos)} — Total: ${money(totalPrevisto)}`;
-}
-
-function clearAll(){
-  if(!confirm('Deseja apagar todo o histórico de empréstimos?')) return;
-  localStorage.removeItem('loansData');
-  renderLoans();
-}
-
-/* export/import JSON */
-function exportJson(){
-  const data = localStorage.getItem('loansData') || '[]';
-  const blob = new Blob([data], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = `emprestimos_${new Date().toISOString().slice(0,10)}.json`;
-  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-}
-
-function importJson(){
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json,application/json';
-  input.onchange = e => {
-    const file = e.target.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try{
-        const parsed = JSON.parse(reader.result);
-        if(Array.isArray(parsed)){
-          localStorage.setItem('loansData', JSON.stringify(parsed));
-          renderLoans();
-          alert('Importação concluída.');
-        } else alert('Arquivo inválido.');
-      }catch(err){ alert('Erro ao importar: ' + err.message); }
-    };
-    reader.readAsText(file);
-  };
-  input.click();
-}
-
-/* ---------- events ---------- */
-document.addEventListener('DOMContentLoaded', ()=>{
-  renderLoans();
-
-  $('#loanForm').addEventListener('submit', (e)=>{
-    e.preventDefault();
-    const loan = {
-      personName: $('#personName').value.trim(),
-      loanDate: $('#loanDate').value,
-      loanAmount: parseNum($('#loanAmount').value),
-      daysToPay: parseNum($('#daysToPay').value),
-      interestRate: parseNum($('#interestRate').value)
-    };
-    addOrUpdateLoan(loan);
-    clearForm();
-    renderLoans($('#searchInput').value);
-  });
-
-  ['#loanAmount','#daysToPay','#interestRate'].forEach(sel => {
-    $(sel).addEventListener('input', updateLivePreview);
-  });
-
-  $('#searchInput').addEventListener('input', e => renderLoans(e.target.value));
-  $('#globalLateRate').addEventListener('input', ()=> renderLoans($('#searchInput').value));
-  $('#clearAll').addEventListener('click', clearAll);
-  $('#exportJson').addEventListener('click', exportJson);
-  $('#importJson').addEventListener('click', importJson);
-});
-</script>
+    // Últimos pagamentos
+    const recentDiv = document.getElementById("recentHistory");
+    if (history.length === 0) {
+      recentDiv.innerHTML = "<p>Nenhum pagamento registrado ainda.</p>";
+    } else {
+      const lastFive = history.slice(-5).reverse();
+      recentDiv.innerHTML = lastFive
+        .map(
+          (h) => `
+        <div class="history-item">
+          <strong>${h.personName}</strong> pagou <b>R$ ${h.totalPaid}</b><br>
+          <small>Data: ${new Date(h.paymentDate).toLocaleDateString()}</small>
+        </div>
+      `
+        )
+        .join("");
+    }
+  </script>
 </body>
 </html>
