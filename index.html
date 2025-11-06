@@ -191,11 +191,11 @@ button.adjust {
   .loan-row { flex-direction: column; align-items: flex-start; }
   form input, button.add { flex: 1 1 100%; }
 }
+
 </style>
 </head>
 <body>
 <div class="container">
-
 <h1>📘 Controle de Empréstimos</h1>
 
 <div style="text-align: center; margin-bottom: 20px;">
@@ -246,7 +246,9 @@ button.adjust {
 </div>
 
 <div class="loan-list" id="loanList"></div>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <script>
   const $ = (s) => document.querySelector(s);
   function money(v) {
@@ -446,6 +448,182 @@ button.adjust {
     const isLight = body.classList.contains('light-mode');
     setTheme(!isLight);
   });
+
+
+
+
+
+  // --- Botões de exportação ---
+  const exportContainer = document.createElement('div');
+  exportContainer.style.textAlign = 'center';
+  exportContainer.style.marginBottom = '20px';
+  exportContainer.innerHTML = `
+    <button id="exportExcelBtn" style="
+      background: var(--success);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-right: 8px;
+    ">📊 Exportar Excel</button>
+    <button id="exportPDFBtn" style="
+      background: var(--danger);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+    ">📄 Exportar PDF</button>
+  `;
+  document.querySelector('.container').insertBefore(exportContainer, document.querySelector('.top-summary'));
+
+  // --- Função para exportar para Excel ---
+  function exportToExcel() {
+    const data = loadLoans();
+    if (data.length === 0) {
+      alert("Nenhum dado para exportar.");
+      return;
+    }
+
+    const rows = data.map(l => {
+      const principal = parseNum(l.loanAmount);
+      const rate = parseNum(l.interestRate);
+      const juros = principal * (rate / 100) * Number(l.daysToPay);
+      const totalPrev = principal + juros;
+      return {
+        Nome: l.personName,
+        "Valor Emprestado": principal,
+        "Dias para Pagar": l.daysToPay,
+        "Juros (%)": l.interestRate,
+        "Total Previsto": totalPrev.toFixed(2),
+        "Data Empréstimo": new Date(l.loanDate).toLocaleDateString(),
+        "Telefone": l.phoneNumber || "-"
+      };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Empréstimos");
+    XLSX.writeFile(wb, "emprestimos.xlsx");
+  }
+
+  // --- Função para exportar para PDF ---
+  async function exportToPDF() {
+  const { jsPDF } = window.jspdf;
+  const data = loadLoans();
+
+  if (data.length === 0) {
+    alert("Nenhum dado para exportar.");
+    return;
+  }
+
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const pageWidth = doc.internal.pageSize.getWidth();
+
+  // --- Cabeçalho ---
+  const logoUrl = ""; // 👉 coloque aqui a URL da sua logo (ou deixe vazio)
+  if (logoUrl) {
+    const img = new Image();
+    img.src = logoUrl;
+    await new Promise((r) => (img.onload = r));
+    doc.addImage(img, "PNG", 10, 8, 20, 20);
+  }
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(18);
+  doc.text("Relatório de Empréstimos", pageWidth / 2, 20, { align: "center" });
+
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "normal");
+  const dataAtual = new Date().toLocaleDateString("pt-BR");
+  doc.text(`Data do relatório: ${dataAtual}`, pageWidth - 14, 30, { align: "right" });
+
+  // --- Corpo da tabela ---
+  const tableData = data.map((l) => {
+    const principal = parseNum(l.loanAmount);
+    const rate = parseNum(l.interestRate);
+    const juros = principal * (rate / 100) * Number(l.daysToPay);
+    const totalPrev = principal + juros;
+    return [
+      l.personName,
+      "R$ " + principal.toFixed(2),
+      l.daysToPay,
+      rate + "%",
+      "R$ " + totalPrev.toFixed(2),
+      new Date(l.loanDate).toLocaleDateString(),
+    ];
+  });
+
+  doc.autoTable({
+    head: [["Nome", "Valor", "Dias", "Juros", "Total Previsto", "Data"]],
+    body: tableData,
+    startY: 38,
+    styles: { fontSize: 10 },
+    headStyles: { fillColor: [39, 203, 224], halign: "center" },
+    bodyStyles: { halign: "center" },
+  });
+
+  // --- Totais ---
+  let sumPrincipal = 0,
+    sumWithInterest = 0,
+    sumPending = 0,
+    countPending = 0;
+
+  const now = new Date();
+  data.forEach((loan) => {
+    const principal = parseNum(loan.loanAmount);
+    const rate = parseNum(loan.interestRate);
+    const days = Number(loan.daysToPay);
+    const juros = principal * (rate / 100) * days;
+    const totalPrev = principal + juros;
+    const due = new Date(loan.loanDate);
+    due.setDate(due.getDate() + days);
+    const diff = Math.floor((due - now) / (1000 * 60 * 60 * 24));
+    const atrasado = diff < 0;
+    const multa = atrasado ? totalPrev * 0.02 * -diff : 0;
+    const totalComMulta = totalPrev + multa;
+
+    sumPrincipal += principal;
+    sumWithInterest += totalPrev;
+    if (atrasado) {
+      sumPending += totalComMulta;
+      countPending++;
+    }
+  });
+
+  const finalY = doc.lastAutoTable.finalY + 10;
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("Resumo Financeiro", 14, finalY);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.text(`• Total Emprestado: R$ ${sumPrincipal.toFixed(2)}`, 14, finalY + 8);
+  doc.text(`• Total com Juros: R$ ${sumWithInterest.toFixed(2)}`, 14, finalY + 14);
+  doc.text(`• Total Pendente: R$ ${sumPending.toFixed(2)}`, 14, finalY + 20);
+  doc.text(`• Empréstimos Pendentes: ${countPending}`, 14, finalY + 26);
+
+  // --- Rodapé ---
+  const footerY = 285;
+  doc.setFontSize(9);
+  doc.setTextColor(120);
+  doc.text(
+    "Gerado automaticamente pelo Sistema de Controle de Empréstimos",
+    pageWidth / 2,
+    footerY,
+    { align: "center" }
+  );
+
+  // --- Salvar ---
+  doc.save(`relatorio_emprestimos_${dataAtual}.pdf`);
+}
+
+  // --- Listeners ---
+  document.getElementById("exportExcelBtn").addEventListener("click", exportToExcel);
+  document.getElementById("exportPDFBtn").addEventListener("click", exportToPDF);
+
+
 </script>
 </div>
 </body>
