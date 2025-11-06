@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Controle de Empréstimos</title>
+<link rel="stylesheet" href="style.css" />
 <style>
 :root {
   --bg: #0a0f1f;
@@ -192,8 +193,6 @@ button.adjust {
 }
 
 
-
-
 /* ====== Menu lateral ====== */
 #sidebar {
   position: fixed;
@@ -227,18 +226,7 @@ body.light #sidebar {
   font-weight: 500;
   display: block;
 }
-#openMenu {
-  position: fixed;
-  top: 15px;
-  left: 15px;
-  background: var(--accent);
-  color: white;
-  border: none;
-  padding: 10px 14px;
-  border-radius: 10px;
-  cursor: pointer;
-  z-index: 30;
-}
+
 #closeMenu {
   background: var(--danger);
   color: white;
@@ -248,13 +236,32 @@ body.light #sidebar {
   cursor: pointer;
 }
 
+
+
 </style>
 </head>
 <body>
 
-<button id="openMenu">☰</button>
-<aside id="sidebar">
-  <button id="closeMenu">✖</button>
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h2>💰 MOB</h2>
+    <button id="closeMenu" class="close-btn">×</button>
+  </div>
+  <ul>
+    <li><a href="index.html">🏠 Home</a></li>
+    <li><a href="dashboard.html">📊 Dashboard</a></li>
+    <li><a href="#">💰 Empréstimos</a></li>
+    <li><a href="historico.html" class="active">🧾 Histórico</a></li>
+    <li><a href="#">⚙️ Configurações</a></li>
+  </ul>
+</nav>
+
+<!-- ===== MENU LATERAL ===== -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h2>💰 MOB</h2>
+    <button id="closeMenu" class="close-btn">×</button>
+  </div>
   <ul>
     <li><a href="index.html" class="active">🏠 Home</a></li>
     <li><a href="dashboard.html">📊 Dashboard</a></li>
@@ -262,20 +269,14 @@ body.light #sidebar {
     <li><a href="historico.html">🧾 Histórico</a></li>
     <li><a href="#">⚙️ Configurações</a></li>
   </ul>
-</aside>
+</nav>
 
-<h1>📘 Controle de Empréstimos</h1>
-
-<div style="text-align: center; margin-bottom: 20px;">
-  <button id="toggleThemeBtn" style="
-    background: var(--accent);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 12px;
-    cursor: pointer;
-  ">Modo Claro</button>
-</div>
+<!-- ===== TOPO ===== -->
+<header class="topbar">
+  <button id="openMenu" class="menu-btn">☰</button>
+  <h1>Controle de Empréstimos</h1>
+  <button id="toggleThemeBtn" class="theme-btn">🌙</button>
+</header>
 
 <div class="top-summary">
   <div class="summary-card">

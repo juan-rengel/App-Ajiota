@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>📊 Dashboard Financeiro</title>
-
+<link rel="stylesheet" href="style.css" />
 <!-- ====== Estilos ====== -->
 <style>
 :root {
@@ -26,18 +26,13 @@
 body {
   font-family: "Inter", sans-serif;
   margin: 0;
-  background: var(--bg-dark);
+  background: var(--card-dark);
   color: var(--text-dark);
   transition: background 0.3s, color 0.3s;
   min-height: 100vh;
   padding: 0;
 }
 
-/* ===== Modo Claro ===== */
-body.light {
-  background: var(--bg-light);
-  color: var(--text-light);
-}
 
 /* ===== Layout ===== */
 header {
@@ -51,7 +46,7 @@ header {
   z-index: 10;
 }
 body.light header {
-  background: var(--card-light);
+  background: var(--card-dark);
   color: var(--text-light);
 }
 
@@ -147,6 +142,7 @@ body.light #sidebar {
   padding: 6px 10px;
   border-radius: 8px;
   cursor: pointer;
+
 }
 
 /* ====== Gráficos ====== */
@@ -159,36 +155,32 @@ body.light canvas {
   background: var(--card-light);
 }
 
-/* ====== Botão tema ====== */
-#toggleThemeBtn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: var(--accent);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  font-size: 1.2rem;
-  cursor: pointer;
-}
 </style>
 </head>
 
 <body>
 
-<button id="openMenu">☰</button>
-<aside id="sidebar">
-  <button id="closeMenu">✖</button>
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h2>💰 MOB</h2>
+    <button id="closeMenu" class="close-btn">×</button>
+  </div>
   <ul>
-    <li><a href="index.html" class="active">🏠 Home</a></li>
+    <li><a href="index.html">🏠 Home</a></li>
     <li><a href="dashboard.html">📊 Dashboard</a></li>
     <li><a href="emprestimos.html">💰 Empréstimos</a></li>
-    <li><a href="historico.html">🧾 Histórico</a></li>
+    <li><a href="historico.html" class="active">🧾 Histórico</a></li>
     <li><a href="#">⚙️ Configurações</a></li>
   </ul>
-</aside>
+</nav>
+
+<!-- ===== TOPO ===== -->
+<header class="topbar">
+  <button id="openMenu" class="menu-btn">☰</button>
+  <h1>Histórico de Pagamentos</h1>
+  <button id="toggleThemeBtn" class="theme-btn">🌙</button>
+</header>
+
 
 <header>📊 Dashboard Financeiro</header>
 
