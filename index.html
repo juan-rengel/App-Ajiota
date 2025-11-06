@@ -258,16 +258,31 @@ button.adjust {
 </div>
 
 <div class="form-card">
-  <form id="loanForm">
-    <input type="hidden" id="editIndex" />
-    <input type="text" id="personName" placeholder="Nome da pessoa" required />
-    <input type="number" id="loanAmount" placeholder="Valor (R$)" step="0.01" required />
-    <input type="number" id="daysToPay" placeholder="Dias para pagar" required />
-    <input type="number" id="interestRate" placeholder="Juros diário (%)" step="0.01" required />
-    <input type="date" id="loanDate" required />
-    <input type="tel" id="phoneNumber" placeholder="Telefone (ex: 5511999999999)" pattern="[0-9]{10,15}" />
+  <form id="loanForm" enctype="multipart/form-data">
+  <input type="hidden" id="editIndex" />
+  <input type="text" id="personName" placeholder="Nome da pessoa" required />
+  <input type="number" id="loanAmount" placeholder="Valor (R$)" step="0.01" required />
+  <input type="number" id="daysToPay" placeholder="Dias para pagar" required />
+  <input type="number" id="interestRate" placeholder="Juros diário (%)" step="0.01" required />
+  <input type="date" id="loanDate" required />
+  <input type="tel" id="phoneNumber" placeholder="Telefone (ex: 5511999999999)" pattern="[0-9]{10,15}" />
+
+  <!-- Uploads -->
+  <label style="width:100%; display:block; margin-top:6px; font-size:0.85rem; color:var(--muted)">Foto de Perfil (jpg/png) — max 2MB</label>
+  <input type="file" id="profilePhoto" accept="image/*" />
+
+  <label style="width:100%; display:block; margin-top:6px; font-size:0.85rem; color:var(--muted)">Foto do CPF (jpg/png) — max 2MB</label>
+  <input type="file" id="cpfPhoto" accept="image/*" />
+
+  <label style="width:100%; display:block; margin-top:6px; font-size:0.85rem; color:var(--muted)">Comprovante de Residência (jpg/png/pdf) — max 2MB</label>
+  <input type="file" id="proofPhoto" accept="image/*,application/pdf" />
+
+  <div style="display:flex; gap:10px; align-items:center; width:100%;">
     <button class="add" type="submit" id="submitBtn">Adicionar</button>
-  </form>
+    <div id="previewUploads" style="display:flex; gap:8px; align-items:center;"></div>
+  </div>
+</form>
+
 </div>
 
 <div class="search-box">
@@ -379,6 +394,124 @@ button.adjust {
     document.getElementById('countPending').textContent = countPending;
   }
 
+   // Leitura de arquivo para dataURL (Promise)
+  function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+      if (!file) return resolve(null);
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Validação simples de arquivo (tipo + tamanho)
+  function validateFile(file, allowedTypes = [], maxMB = 2) {
+    if (!file) return { ok: true };
+    const sizeMB = file.size / (1024 * 1024);
+    if (sizeMB > maxMB) return { ok: false, error: `Arquivo muito grande (${sizeMB.toFixed(2)} MB). Máx ${maxMB}MB.` };
+    if (allowedTypes.length) {
+      const isOk = allowedTypes.some(t => file.type.includes(t));
+      if (!isOk) return { ok: false, error: `Tipo de arquivo inválido: ${file.type}` };
+    }
+    return { ok: true };
+  }
+
+  // Atualiza preview dos uploads abaixo do botão
+  function updatePreviewInputs() {
+    const previewDiv = document.getElementById('previewUploads');
+    previewDiv.innerHTML = '';
+    const p = document.getElementById('profilePhoto').files[0];
+    const c = document.getElementById('cpfPhoto').files[0];
+    const r = document.getElementById('proofPhoto').files[0];
+
+    [ {file:p,label:'Perfil'}, {file:c,label:'CPF'}, {file:r,label:'Comprov.'} ].forEach(item => {
+      if (!item.file) return;
+      const v = document.createElement('div');
+      v.style.textAlign = 'center';
+      v.style.fontSize = '0.8rem';
+      v.style.maxWidth = '72px';
+      v.style.wordBreak = 'break-word';
+
+      if (item.file.type === 'application/pdf') {
+        v.innerHTML = `<div style="font-size:24px">📄</div><div>${item.label}</div>`;
+      } else {
+        const img = document.createElement('img');
+        img.style.width = '60px';
+        img.style.height = '60px';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '8px';
+        const url = URL.createObjectURL(item.file);
+        img.src = url;
+        v.appendChild(img);
+        const lbl = document.createElement('div');
+        lbl.textContent = item.label;
+        v.appendChild(lbl);
+      }
+      previewDiv.appendChild(v);
+    });
+  }
+
+  // Ouvir mudanças nos inputs para mostrar preview imediato
+  ['profilePhoto','cpfPhoto','proofPhoto'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('change', updatePreviewInputs);
+  });
+
+  // Handler do formulário (async porque precisa ler arquivos)
+  $('#loanForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const loans = loadLoans();
+
+    // Valida arquivos
+    const profileFile = document.getElementById('profilePhoto').files[0];
+    const cpfFile = document.getElementById('cpfPhoto').files[0];
+    const proofFile = document.getElementById('proofPhoto').files[0];
+
+    const v1 = validateFile(profileFile, ['image']);
+    const v2 = validateFile(cpfFile, ['image']);
+    const v3 = validateFile(proofFile, ['image','application/pdf']);
+    if (!v1.ok) return alert(v1.error);
+    if (!v2.ok) return alert(v2.error);
+    if (!v3.ok) return alert(v3.error);
+
+    // Ler arquivos como Data URLs
+    const [profileData, cpfData, proofData] = await Promise.all([
+      readFileAsDataURL(profileFile),
+      readFileAsDataURL(cpfFile),
+      readFileAsDataURL(proofFile)
+    ]);
+
+    const newLoan = {
+      personName: $('#personName').value,
+      loanAmount: $('#loanAmount').value,
+      daysToPay: $('#daysToPay').value,
+      interestRate: $('#interestRate').value,
+      loanDate: $('#loanDate').value,
+      phoneNumber: $('#phoneNumber').value.trim(),
+      attachments: {
+        profilePhoto: profileData || null,
+        cpfPhoto: cpfData || null,
+        proofPhoto: proofData || null
+      }
+    };
+
+    const idx = $('#editIndex').value;
+    if (idx) {
+      loans[idx] = newLoan;
+      $('#submitBtn').textContent = 'Adicionar';
+      $('#editIndex').value = '';
+    } else {
+      loans.push(newLoan);
+    }
+
+    saveLoans(loans);
+    e.target.reset();
+    updatePreviewInputs();
+    renderLoans($('#searchInput').value);
+  });
+
+  // Editar empréstimo: preenche formulário e previews com attachments
   function editLoan(i) {
     const loans = loadLoans();
     const l = loans[i];
@@ -390,7 +523,126 @@ button.adjust {
     $('#phoneNumber').value = l.phoneNumber || '';
     $('#editIndex').value = i;
     $('#submitBtn').textContent = 'Salvar';
+
+    // Remover valores de file inputs (não podemos povoar file inputs por segurança),
+    // então mostramos previews usando os DataURLs salvos.
+    const previewDiv = document.getElementById('previewUploads');
+    previewDiv.innerHTML = '';
+    if (l.attachments) {
+      const buildPreview = (dataUrl, label) => {
+        if (!dataUrl) return;
+        const v = document.createElement('div');
+        v.style.textAlign = 'center';
+        v.style.fontSize = '0.8rem';
+        v.style.maxWidth = '72px';
+        if (dataUrl.startsWith('data:application/pdf')) {
+          v.innerHTML = `<div style="font-size:24px">📄</div><div>${label}</div>`;
+        } else {
+          const img = document.createElement('img');
+          img.style.width = '60px';
+          img.style.height = '60px';
+          img.style.objectFit = 'cover';
+          img.style.borderRadius = '8px';
+          img.src = dataUrl;
+          v.appendChild(img);
+          const lbl = document.createElement('div');
+          lbl.textContent = label;
+          v.appendChild(lbl);
+        }
+        previewDiv.appendChild(v);
+      };
+      buildPreview(l.attachments.profilePhoto, 'Perfil');
+      buildPreview(l.attachments.cpfPhoto, 'CPF');
+      buildPreview(l.attachments.proofPhoto, 'Comprov.');
+    }
   }
+
+  // Atualizar renderLoans para exibir miniaturas / links dos attachments
+  const originalRender = renderLoans;
+  renderLoans = function(filter = '') {
+    // chamamos a função original para manter cálculos e criação base dos cards
+    originalRender(filter);
+
+    // agora adicionamos previews/links nas loan-cards
+    const list = document.getElementById('loanList');
+    const cards = list.querySelectorAll('.loan-card');
+    const loans = loadLoans().filter((l) => l.personName.toLowerCase().includes(filter.toLowerCase()));
+
+    cards.forEach((card, i) => {
+      const l = loans[i];
+      if (!l) return;
+      // criar container de attachments
+      let attachDiv = card.querySelector('.attachments');
+      if (!attachDiv) {
+        attachDiv = document.createElement('div');
+        attachDiv.className = 'attachments';
+        attachDiv.style.marginTop = '8px';
+        attachDiv.style.display = 'flex';
+        attachDiv.style.gap = '8px';
+        card.appendChild(attachDiv);
+      } else {
+        attachDiv.innerHTML = '';
+      }
+
+      const makeThumb = (dataUrl, title) => {
+        if (!dataUrl) return;
+        const wrapper = document.createElement('div');
+        wrapper.style.display = 'flex';
+        wrapper.style.flexDirection = 'column';
+        wrapper.style.alignItems = 'center';
+        wrapper.style.fontSize = '0.75rem';
+        wrapper.style.textAlign = 'center';
+
+        if (dataUrl.startsWith('data:application/pdf')) {
+          const a = document.createElement('a');
+          a.href = dataUrl;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.style.textDecoration = 'none';
+          a.innerHTML = `<div style="font-size:20px">📄</div><div style="max-width:70px;">${title}</div>`;
+          wrapper.appendChild(a);
+        } else {
+          const img = document.createElement('img');
+          img.src = dataUrl;
+          img.style.width = '54px';
+          img.style.height = '54px';
+          img.style.objectFit = 'cover';
+          img.style.borderRadius = '8px';
+          img.style.cursor = 'pointer';
+          img.title = 'Abrir em tamanho real';
+          img.onclick = () => {
+            const w = window.open('');
+            w.document.write(`<img src="${dataUrl}" style="max-width:100%;">`);
+          };
+          wrapper.appendChild(img);
+          const lbl = document.createElement('div');
+          lbl.textContent = title;
+          wrapper.appendChild(lbl);
+        }
+
+        // Botão pequeno para baixar
+        const down = document.createElement('a');
+        down.href = dataUrl;
+        down.download = `${l.personName}_${title}`;
+        down.style.fontSize = '0.7rem';
+        down.style.marginTop = '4px';
+        down.textContent = 'Baixar';
+        wrapper.appendChild(down);
+
+        attachDiv.appendChild(wrapper);
+      };
+
+      if (l.attachments) {
+        makeThumb(l.attachments.profilePhoto, 'Perfil');
+        makeThumb(l.attachments.cpfPhoto, 'CPF');
+        makeThumb(l.attachments.proofPhoto, 'Comprov.');
+      }
+    });
+  };
+
+  // Inicializa previews caso já exista arquivo selecionado no form
+  updatePreviewInputs();
+
 
   function deleteLoan(i) {
     if (!confirm('Excluir este empréstimo?')) return;
