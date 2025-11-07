@@ -5,95 +5,108 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>EmpressX Controle - Gestão de Empréstimos</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- libs para exportar Excel e PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
+  <!-- Botão do menu -->
   <button id="btnMenu" aria-label="Abrir menu">&#9776;</button>
 
+  <!-- MENU LATERAL -->
   <aside class="sidebar" role="navigation" aria-label="Menu lateral">
-    <h2 class="sidebar-logo">EmpressX Controle</h2>
+    <h2 class="sidebar-logo">📘 EmpressX</h2>
     <nav>
       <ul>
-        <li><a href="#" data-aba="home" class="link-aba ativo">Home</a></li>
-        <li><a href="#" data-aba="cadastro" class="link-aba">Cadastro Clientes</a></li>
-        <li><a href="#" data-aba="historico" class="link-aba">Histórico Empréstimos</a></li>
-        <li><a href="#" data-aba="devedores" class="link-aba">Devedores</a></li>
-        <li><a href="#" data-aba="dashboard" class="link-aba">Dashboard</a></li>
+        <li><a href="#home" class="link-aba ativo">🏠 Home</a></li>
+        <li><a href="#cadastro" class="link-aba">➕ Cadastro</a></li>
+        <li><a href="#historico" class="link-aba">📜 Histórico</a></li>
+        <li><a href="#devedores" class="link-aba">⚠️ Devedores</a></li>
+        <li><a href="#dashboard" class="link-aba">📊 Dashboard</a></li>
+        <li><a href="#perfil" class="link-aba">👤 Perfil</a></li>
         <li><button id="btnTema">🌙 Tema Claro/Escuro</button></li>
       </ul>
     </nav>
   </aside>
 
+  <!-- CONTEÚDO PRINCIPAL -->
   <main class="conteudo">
     <!-- HOME -->
-    <section id="home" class="aba ativa" role="region" aria-label="Home - Lista de clientes">
+    <section id="home" class="secao" style="display:block;">
       <h1>Clientes Cadastrados</h1>
-      <input type="search" id="filtroClientesHome" placeholder="Pesquisar clientes por nome..." aria-label="Filtrar clientes" />
-      <div id="listaClientesHome" class="lista-clientes" aria-live="polite"></div>
+      <input type="search" id="filtroClientesHome" placeholder="Pesquisar clientes por nome..." />
+      <div id="listaClientes" class="lista-clientes"></div>
     </section>
 
     <!-- CADASTRO -->
-    <section id="cadastro" class="aba" role="region" aria-label="Cadastro de clientes e empréstimos">
-      <h1>Cadastro de Cliente e Empréstimo</h1>
+    <section id="cadastro" class="secao">
+      <h1>Cadastro de Cliente</h1>
       <form id="formCliente">
-        <label for="nomeCliente">Nome Completo*</label>
-        <input id="nomeCliente" type="text" required />
-        
-        <label for="cpfCliente">CPF*</label>
-        <input id="cpfCliente" type="text" maxlength="14" placeholder="000.000.000-00" required />
-        
-        <label for="pixCliente">Chave PIX (WhatsApp/Telefone)</label>
-        <input id="pixCliente" type="text" placeholder="(00) 00000-0000" />
-        
-        <label for="fotoPerfilCliente">Foto de Perfil</label>
-        <input id="fotoPerfilCliente" type="file" accept="image/*" />
-        
-        <label for="fotoComprovanteResidencia">Comprovante de Residência</label>
-        <input id="fotoComprovanteResidencia" type="file" accept="image/*" />
-        
-        <label for="valorEmprestimo">Valor do Empréstimo (R$)*</label>
-        <input id="valorEmprestimo" type="number" step="0.01" min="0" required />
-        
-        <label for="jurosEmprestimo">Juros (%)</label>
-        <input id="jurosEmprestimo" type="number" step="0.01" min="0" value="0" />
-        
-        <label for="diasPrazo">Dias para Pagar*</label>
-        <input id="diasPrazo" type="number" min="1" required />
-        
-        <button type="submit">Cadastrar</button>
-        <p id="msgCliente" class="msg-feedback" aria-live="polite"></p>
+        <label>Nome:</label>
+        <input type="text" id="nome" required />
+
+        <label>Valor do Empréstimo (R$):</label>
+        <input type="number" id="valor" step="0.01" min="0" required />
+
+        <label>Data de Vencimento:</label>
+        <input type="date" id="vencimento" required />
+
+        <label>Foto (URL):</label>
+        <input type="text" id="foto" placeholder="https://..." />
+
+        <button type="submit">💾 Salvar Cliente</button>
       </form>
     </section>
 
     <!-- HISTÓRICO -->
-    <section id="historico" class="aba" role="region" aria-label="Histórico de empréstimos">
+    <section id="historico" class="secao">
       <h1>Histórico de Empréstimos</h1>
-      <div id="containerHistorico" class="lista-clientes"></div>
-      <button id="exportarExcel">Exportar Excel</button>
-      <button id="exportarPDF">Exportar PDF</button>
+      <div id="historicoList"></div>
+      <button id="exportarExcel">📤 Exportar Excel</button>
+      <button id="exportarPDF">📄 Exportar PDF</button>
     </section>
 
     <!-- DEVEDORES -->
-    <section id="devedores" class="aba" role="region" aria-label="Clientes Devedores">
-      <h1>Devedores</h1>
-      <input type="search" id="buscaEmprestimos" placeholder="Buscar por nome..." aria-label="Buscar devedores" />
-      <div id="listaDevedores" class="lista-clientes" aria-live="polite"></div>
+    <section id="devedores" class="secao">
+      <h1>Clientes Devedores</h1>
+      <input type="search" id="buscaEmprestimos" placeholder="Buscar por nome..." />
+      <div id="listaDevedores" class="lista-clientes"></div>
     </section>
 
     <!-- DASHBOARD -->
-    <section id="dashboard" class="aba" role="region" aria-label="Dashboard resumo">
-      <h1>Dashboard tx</h1>
-      <ul>
+    <section id="dashboard" class="secao">
+      <h1>Dashboard</h1>
+      <ul class="dashboard-info">
         <li><strong>Total Clientes:</strong> <span id="totalClientes">0</span></li>
-        <li><strong>Total Emprestado (R$):</strong> <span id="totalEmprestado">0.00</span></li>
-        <li><strong>Total Recebido (R$):</strong> <span id="totalRecebido">0.00</span></li>
-        <li><strong>Total a Receber (R$):</strong> <span id="totalReceber">0.00</span></li>
+        <li><strong>Total Emprestado:</strong> R$ <span id="totalEmprestado">0.00</span></li>
+        <li><strong>Total Recebido:</strong> R$ <span id="totalRecebido">0.00</span></li>
+        <li><strong>Total a Receber:</strong> R$ <span id="totalReceber">0.00</span></li>
       </ul>
     </section>
-  </main> 
+
+    <!-- PERFIL DO PROPRIETÁRIO -->
+    <section id="perfil" class="secao">
+      <h1>Perfil do Proprietário</h1>
+      <form id="formPerfil">
+        <label>Nome:</label>
+        <input type="text" id="nomeProprietario" placeholder="Seu nome" required />
+
+        <label>Email:</label>
+        <input type="email" id="emailProprietario" placeholder="seuemail@exemplo.com" />
+
+        <label>Foto (URL):</label>
+        <input type="text" id="fotoProprietario" placeholder="https://..." />
+
+        <button type="submit">💾 Salvar Perfil</button>
+      </form>
+
+      <div id="perfilPreview" class="perfil-preview">
+        <img src="https://via.placeholder.com/100" alt="Foto do proprietário" />
+        <p><strong>Seu Nome</strong></p>
+        <p>email@exemplo.com</p>
+      </div>
+    </section>
+  </main>
 
   <script src="main.js" defer></script>
 </body>
