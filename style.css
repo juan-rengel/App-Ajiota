@@ -1,357 +1,425 @@
-/* ==========================
-   ESTILOS GERAIS
-========================== */
-:root {
-  --bg-light: #f3f4f6;
-  --card-light: #ffffff;
-  --text-light: #222;
-  --accent-light: #2563eb;
-
-  --bg-dark: #0f172a;
-  --card-dark: #1e293b;
-  --text-dark: #e2e8f0;
-  --accent-dark: #3b82f6;
-
-  --radius: 14px;
-  --transition: 0.3s ease;
+/* Reset e base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  font-family: "Poppins", sans-serif;
-  margin: 0;
-  background: var(--bg-light);
-  color: var(--text-light);
-  transition: background var(--transition), color var(--transition);
-}
-
-/* ==========================
-   MODO ESCURO
-========================== */
-body.dark {
-  background: var(--bg-dark);
-  color: var(--text-dark);
-}
-
-body.dark .topbar {
-  background: var(--card-dark);
-  color: var(--text-dark);
-}
-
-body.dark .form-card,
-body.dark .loan-card,
-body.dark .summary-card {
-  background: var(--card-dark);
-  color: var(--text-dark);
-  box-shadow: 0 0 10px rgba(255,255,255,0.05);
-}
-
-body.dark .sidebar {
-  background: #0b1120;
-}
-
-/* ==========================
-   TOPO
-========================== */
-.topbar {
-  background: var(--card-light);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  transition: background var(--transition);
 }
 
-.topbar h1 {
-  font-size: 18px;
-  margin: 0;
+/* Temas */
+:root {
+  --bg: #f4f4f4;
+  --text: #222;
+  --primary: #2c3e50;
+  --secondary: #2980b9;
+  --accent: #3498db;
+  --success: #27ae60;
+  --danger: #e74c3c;
+  --card-bg: #fff;
+  --input-bg: #fff;
+  --input-border: #ccc;
+  --btn-bg: var(--accent);
+  --btn-text: #fff;
+  --sidebar-bg: #34495e;
+  --sidebar-text: #ecf0f1;
+  --link-hover: #2980b9;
 }
 
-.menu-btn, .theme-btn {
-  font-size: 20px;
-  background: none;
-  border: none;
-  cursor: pointer;
+[data-tema="escuro"] {
+  --bg: #121212;
+  --text: #eee;
+  --primary: #ecf0f1;
+  --secondary: #3498db;
+  --accent: #2980b9;
+  --success: #2ecc71;
+  --danger: #e74c3c;
+  --card-bg: #1f1f1f;
+  --input-bg: #333;
+  --input-border: #555;
+  --btn-bg: #2980b9;
+  --btn-text: #fff;
+  --sidebar-bg: #222;
+  --sidebar-text: #ddd;
+  --link-hover: #3498db;
 }
 
-/* ==========================
-   SIDEBAR
-========================== */
-.sidebar {
+/* Botão menu hamburguer */
+#btnMenu {
   position: fixed;
-  top: 0;
-  left: -250px;
-  width: 250px;
-  height: 100vh;
-  background: var(--card-light);
-  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-  transition: left var(--transition);
-  z-index: 1000;
-  padding: 10px 0;
-}
-
-.sidebar.open {
-  left: 0;
-}
-
-.sidebar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 16px;
-}
-
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-}
-
-.sidebar ul li a {
-  display: block;
-  padding: 12px 18px;
-  text-decoration: none;
-  color: inherit;
-  transition: background var(--transition);
-}
-
-.sidebar ul li a:hover,
-.sidebar ul li a.active {
-  background: var(--accent-light);
-  color: #fff;
-  border-radius: var(--radius);
-}
-
-.close-btn {
-  font-size: 20px;
-  background: none;
+  top: 10px;
+  left: 10px;
+  font-size: 28px;
+  background: transparent;
   border: none;
+  color: var(--primary);
   cursor: pointer;
+  z-index: 999;
+  display: none;
 }
 
-/* ==========================
-   CONTAINER PRINCIPAL
-========================== */
-.container {
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: fixed;
+  overflow-y: auto;
+  transition: transform 0.3s ease;
 }
 
-.top-summary {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
+.sidebar-logo {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.sidebar nav ul {
+  list-style: none;
+}
+
+.sidebar nav ul li {
   margin-bottom: 15px;
 }
 
-.summary-card {
-  background: var(--card-light);
-  border-radius: var(--radius);
-  padding: 10px 14px;
-  flex: 1;
-  min-width: 130px;
-  text-align: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  transition: background var(--transition);
+.sidebar nav ul li a,
+.sidebar nav ul li button {
+  display: block;
+  padding: 10px 15px;
+  color: var(--sidebar-text);
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 5px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  cursor: pointer;
+  border: none;
+  font-size: 16px;
+  transition: background-color 0.2s ease;
 }
 
-.summary-card .value {
-  font-weight: bold;
+.sidebar nav ul li a:hover,
+.sidebar nav ul li button:hover,
+.sidebar nav ul li a.ativo {
+  background: var(--link-hover);
+  color: #fff;
+}
+
+/* Conteúdo principal */
+.conteudo {
+  margin-left: 220px;
+  padding: 30px 40px;
+  flex-grow: 1;
+  background: var(--bg);
+  min-height: 100vh;
+  overflow-y: auto;
+  transition: margin-left 0.3s ease;
+}
+
+/* Se sidebar estiver fechado no mobile */
+.sidebar.aberto {
+  transform: translateX(0);
+  z-index: 1000;
+}
+
+/* Abas */
+.aba {
+  display: none;
+}
+
+.aba.ativa {
+  display: block;
+}
+
+/* Formulário */
+form#formCliente {
+  max-width: 600px;
+  background: var(--card-bg);
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgb(0 0 0 / 0.15);
+}
+
+form#formCliente label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  margin-top: 15px;
+  color: var(--primary);
+}
+
+form#formCliente input[type="text"],
+form#formCliente input[type="number"],
+form#formCliente input[type="file"],
+form#formCliente input[type="search"] {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 15px;
+  border: 1.8px solid var(--input-border);
+  border-radius: 5px;
+  background: var(--input-bg);
+  color: var(--text);
+  transition: border-color 0.3s ease;
+}
+
+form#formCliente input[type="text"]:focus,
+form#formCliente input[type="number"]:focus,
+form#formCliente input[type="file"]:focus,
+form#formCliente input[type="search"]:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+form#formCliente button[type="submit"] {
+  margin-top: 25px;
+  background: var(--btn-bg);
+  color: var(--btn-text);
   font-size: 18px;
+  padding: 12px 0;
+  border: none;
+  border-radius: 8px;
+  width: 100%;
+  cursor: pointer;
+  font-weight: 700;
+  transition: background-color 0.3s ease;
 }
 
-/* ==========================
-   FORMULÁRIO
-========================== */
-.form-card {
-  background: var(--card-light);
-  border-radius: var(--radius);
-  padding: 15px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
-  transition: background var(--transition);
+form#formCliente button[type="submit"]:hover {
+  background: var(--secondary);
 }
 
-.form-card form {
+.msg-feedback {
+  margin-top: 12px;
+  font-weight: 600;
+  min-height: 24px;
+}
+
+/* Cards clientes Home */
+.lista-clientes {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.card-cliente {
+  background: var(--card-bg);
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgb(0 0 0 / 0.12);
+  padding: 20px;
+  width: 300px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  transition: box-shadow 0.3s ease;
+}
+
+.card-cliente:hover {
+  box-shadow: 0 6px 14px rgb(0 0 0 / 0.2);
+}
+
+.foto-perfil {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid var(--secondary);
+  flex-shrink: 0;
+}
+
+.info-basica {
+  flex-grow: 1;
+}
+
+.info-basica h3 {
+  margin-bottom: 6px;
+  color: var(--primary);
+}
+
+.info-basica p {
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+
+.pendente {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.pago {
+  color: var(--success);
+  font-weight: 700;
+}
+
+.acoes-cliente {
+  margin-top: 10px;
+  display: flex;
   gap: 10px;
 }
 
-input, button {
-  padding: 10px;
-  border-radius: var(--radius);
-  border: 1px solid #ccc;
+.acoes-cliente button {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
   font-size: 14px;
+  transition: background-color 0.3s ease;
+  color: #fff;
 }
 
-button.add {
-  background: var(--accent-light);
-  color: white;
-  border: none;
-  cursor: pointer;
-  transition: 0.3s;
+.acoes-cliente .btn-editar {
+  background-color: var(--secondary);
 }
 
-button.add:hover {
-  background: var(--accent-dark);
+.acoes-cliente .btn-editar:hover {
+  background-color: var(--accent);
 }
 
-/* ==========================
-   LISTA DE EMPRÉSTIMOS
-========================== */
-.loan-list {
-  display: grid;
-  gap: 15px;
+.acoes-cliente .btn-excluir {
+  background-color: var(--danger);
 }
 
-.loan-card {
-  background: var(--card-light);
-  border-radius: var(--radius);
-  padding: 15px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  transition: transform 0.2s ease;
+.acoes-cliente .btn-excluir:hover {
+  background-color: #c0392b;
 }
 
-.loan-card:hover {
-  transform: scale(1.01);
-}
-
-.card-header h3 {
-  margin: 0;
-  font-size: 16px;
-}
-
-.card-body p {
-  margin: 4px 0;
-  font-size: 14px;
-}
-
-.card-actions {
-  margin-top: 10px;
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-button.pay-btn {
-  background: #16a34a;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-button.pay-btn:hover {
-  background: #15803d;
-}
-
-button.delete-btn {
-  background: #dc2626;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-button.delete-btn:hover {
-  background: #b91c1c;
-}
-
-/* ==========================
-   SEARCH BOX
-========================== */
-.search-box {
+/* Histórico e Devedores */
+.card-emprestimo {
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: 15px 20px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
   margin-bottom: 15px;
 }
 
-.search-box input {
-  width: 100%;
-  padding: 10px;
-  border-radius: var(--radius);
-  border: 1px solid #aaa;
+.card-emprestimo h3 {
+  margin-bottom: 8px;
+  color: var(--primary);
 }
 
-/* ==========================
-   TOAST
-========================== */
-.toast {
-  visibility: hidden;
-  min-width: 250px;
-  background: #333;
+.card-emprestimo p {
+  font-size: 14px;
+  margin-bottom: 5px;
+  color: var(--text);
+}
+
+.card-emprestimo .pago {
+  color: var(--success);
+  font-weight: 700;
+}
+
+.card-emprestimo .pendente {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+/* Botões Exportar */
+#exportarExcel,
+#exportarPDF {
+  margin: 10px 10px 30px 0;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 7px;
+  font-weight: 700;
+  background: var(--secondary);
   color: #fff;
-  text-align: center;
-  border-radius: var(--radius);
-  padding: 14px;
-  position: fixed;
-  bottom: 25px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10000;
-  opacity: 0;
-  transition: opacity 0.5s, visibility 0.5s;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
-.toast.show {
-  visibility: visible;
-  opacity: 1;
+#exportarExcel:hover,
+#exportarPDF:hover {
+  background: var(--accent);
 }
 
-/* ==========================
-   RESPONSIVIDADE
-========================== */
-@media (max-width: 768px) {
-  .top-summary {
-    flex-direction: column;
+/* Dashboard */
+#dashboard ul {
+  list-style: none;
+  max-width: 400px;
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+}
+
+#dashboard ul li {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: var(--primary);
+}
+
+/* Input de busca */
+input[type="search"] {
+  max-width: 400px;
+  padding: 10px 15px;
+  font-size: 15px;
+  border-radius: 6px;
+  border: 1.8px solid var(--input-border);
+  margin-bottom: 15px;
+  color: var(--text);
+  background: var(--input-bg);
+  transition: border-color 0.3s ease;
+}
+
+input[type="search"]:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Responsividade */
+@media (max-width: 678px) {
+  #btnMenu {
+    display: block;
   }
 
   .sidebar {
-    width: 50%;
+    position: fixed;
+    height: 100%;
+    top: 0;
+    left: 0;
+    transform: translateX(-100%);
+    z-index: 9999;
+    width: 220px;
   }
 
-  .loan-card {
-    font-size: 14px;
+  .sidebar.aberto {
+    transform: translateX(0);
   }
 
-  .topbar h1 {
-    font-size: 16px;
+  .conteudo {
+    margin-left: 0;
+    padding: 20px 15px;
   }
-}
 
+  .lista-clientes {
+    flex-direction: column;
+    gap: 12px;
+  }
 
+  .card-cliente {
+    width: 100%;
+    flex-wrap: wrap;
+  }
 
-.modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-.modal-content {
-  background: var(--card);
-  color: var(--text);
-  padding: 20px;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 400px;
-}
-.modal-actions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 15px;
-}
-.btn-cancel, .btn-save {
-  padding: 10px 16px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-.btn-cancel {
-  background: #444;
-  color: white;
-}
-.btn-save {
-  background: #007bff;
-  color: white;
+  form#formCliente {
+    padding: 20px;
+  }
+
+  #dashboard ul {
+    max-width: 100%;
+  }
 }
