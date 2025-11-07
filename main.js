@@ -1,249 +1,211 @@
-// main.js - EmpressX Controle
+// ======== EmpressX Controle - main.js ========
 
-document.addEventListener("DOMContentLoaded", () => {
-  const abas = document.querySelectorAll(".link-aba");
-  const secoes = document.querySelectorAll(".aba");
-  const btnTema = document.getElementById("btnTema");
-  const btnMenu = document.getElementById("btnMenu");
-  const sidebar = document.querySelector(".sidebar");
+// ---------- Variáveis globais ----------
+let clientes = JSON.parse(localStorage.getItem("clientes")) || [];
+let perfil = JSON.parse(localStorage.getItem("perfilProprietario")) || null;
+let tema = localStorage.getItem("tema") || "dark";
 
-  const formCliente = document.getElementById("formCliente");
-  const msgCliente = document.getElementById("msgCliente");
-  const listaClientesHome = document.getElementById("listaClientesHome");
-  const filtroClientesHome = document.getElementById("filtroClientesHome");
-  const containerHistorico = document.getElementById("containerHistorico");
-  const listaDevedores = document.getElementById("listaDevedores");
+// ---------- Funções utilitárias ----------
+function salvarClientes() {
+  localStorage.setItem("clientes", JSON.stringify(clientes));
+}
 
-  let clientes = JSON.parse(localStorage.getItem("clientes")) || [];
-  let proprietario = JSON.parse(localStorage.getItem("proprietario")) || null;
+function salvarPerfil() {
+  localStorage.setItem("perfilProprietario", JSON.stringify(perfil));
+}
 
-  // ====== PERFIL DO PROPRIETÁRIO ======
-  if (!proprietario) {
-    const nome = prompt("Digite seu nome completo:");
-    const email = prompt("Digite seu Gmail:");
-    const telefone = prompt("Digite seu telefone no formato internacional (+55...)");
-    const cpf = prompt("Digite seu CPF (usado como chave PIX):");
+function formatarData(data) {
+  const d = new Date(data);
+  return d.toLocaleDateString("pt-BR");
+}
 
-    proprietario = { nome, email, telefone, cpf, criadoEm: new Date().toISOString() };
-    localStorage.setItem("proprietario", JSON.stringify(proprietario));
-    alert(`Bem-vindo(a), ${nome}! Seu perfil foi criado.`);
-  }
+function diasRestantes(dataFinal) {
+  const hoje = new Date();
+  const final = new Date(dataFinal);
+  const diff = Math.ceil((final - hoje) / (1000 * 60 * 60 * 24));
+  return diff >= 0 ? diff : 0;
+}
 
-  // ====== NAVEGAÇÃO ENTRE ABAS ======
-  abas.forEach(link => {
-    link.addEventListener("click", e => {
-      e.preventDefault();
-      abas.forEach(l => l.classList.remove("ativo"));
-      secoes.forEach(s => s.classList.remove("ativa"));
-      link.classList.add("ativo");
-      document.getElementById(link.dataset.aba).classList.add("ativa");
-      sidebar.classList.remove("aberta");
+// ---------- Tema claro/escuro ----------
+function aplicarTema() {
+  document.body.classList.toggle("light-theme", tema === "light");
+}
+aplicarTema();
+
+document.getElementById("toggleTema")?.addEventListener("click", () => {
+  tema = tema === "dark" ? "light" : "dark";
+  localStorage.setItem("tema", tema);
+  aplicarTema();
+});
+
+// ---------- Perfil do proprietário ----------
+function exibirPerfil() {
+  const container = document.getElementById("perfilContainer");
+  if (!container) return;
+
+  if (!perfil) {
+    container.innerHTML = `
+      <h3>Configurar Perfil</h3>
+      <input id="nomeProprietario" placeholder="Nome completo" />
+      <input id="nascimento" type="date" />
+      <input id="emailProprietario" type="email" placeholder="E-mail" />
+      <input id="telefoneProprietario" type="tel" placeholder="+55..." />
+      <input id="cpfProprietario" placeholder="CPF (chave PIX)" />
+      <button id="salvarPerfilBtn">Salvar Perfil</button>
+    `;
+    document.getElementById("salvarPerfilBtn").addEventListener("click", () => {
+      perfil = {
+        nome: document.getElementById("nomeProprietario").value,
+        nascimento: document.getElementById("nascimento").value,
+        email: document.getElementById("emailProprietario").value,
+        telefone: document.getElementById("telefoneProprietario").value,
+        cpf: document.getElementById("cpfProprietario").value
+      };
+      salvarPerfil();
+      exibirPerfil();
     });
-  });
+  } else {
+    container.innerHTML = `
+      <div class="perfil-info">
+        <h3>${perfil.nome}</h3>
+        <p>📧 ${perfil.email}</p>
+        <p>📱 ${perfil.telefone}</p>
+        <p>💳 PIX (CPF): ${perfil.cpf}</p>
+        <button id="editarPerfilBtn">Editar</button>
+      </div>
+    `;
+    document.getElementById("editarPerfilBtn").addEventListener("click", () => {
+      localStorage.removeItem("perfilProprietario");
+      perfil = null;
+      exibirPerfil();
+    });
+  }
+}
+exibirPerfil();
 
-  btnMenu.addEventListener("click", () => sidebar.classList.toggle("aberta"));
-
-  // ====== TEMA CLARO/ESCURO ======
-  btnTema.addEventListener("click", () => {
-    document.body.classList.toggle("dark");
-    localStorage.setItem("tema", document.body.classList.contains("dark") ? "dark" : "light");
-  });
-
-  if (localStorage.getItem("tema") === "dark") document.body.classList.add("dark");
-
-  // ====== CADASTRO DE CLIENTE ======
-  formCliente.addEventListener("submit", e => {
+// ---------- Cadastro de cliente ----------
+const form = document.getElementById("formEmprestimo");
+if (form) {
+  form.addEventListener("submit", (e) => {
     e.preventDefault();
-    const nome = document.getElementById("nomeCliente").value.trim();
-    const cpf = document.getElementById("cpfCliente").value.trim();
-    const pix = document.getElementById("pixCliente").value.trim();
+    const nome = document.getElementById("nomeCliente").value;
     const valor = parseFloat(document.getElementById("valorEmprestimo").value);
-    const juros = parseFloat(document.getElementById("jurosEmprestimo").value);
-    const dias = parseInt(document.getElementById("diasPrazo").value);
-
-    const dataEmprestimo = new Date();
-    const dataVencimento = new Date(dataEmprestimo);
-    dataVencimento.setDate(dataEmprestimo.getDate() + dias);
-
-    const jurosTotais = ((valor * juros) / 100) * dias;
-    const totalPagar = valor + jurosTotais;
+    const dias = parseInt(document.getElementById("diasPagar").value);
+    const juros = parseFloat(document.getElementById("jurosDiario").value);
+    const cpf = document.getElementById("cpfCliente").value;
+    const vencimento = new Date();
+    vencimento.setDate(vencimento.getDate() + dias);
 
     const cliente = {
       id: Date.now(),
       nome,
-      cpf,
-      pix,
       valor,
-      juros,
       dias,
-      jurosTotais,
-      totalPagar,
-      dataEmprestimo: dataEmprestimo.toLocaleDateString(),
-      dataVencimento: dataVencimento.toLocaleDateString(),
-      pago: false,
-      renovacoes: [],
+      juros,
+      cpf,
+      vencimento: vencimento.toISOString(),
+      status: "aberto",
+      historico: []
     };
 
     clientes.push(cliente);
-    localStorage.setItem("clientes", JSON.stringify(clientes));
-    formCliente.reset();
-    msgCliente.textContent = "Cliente cadastrado com sucesso!";
-    atualizarHome();
-    atualizarHistorico();
-    atualizarDashboard();
-    atualizarDevedores();
+    salvarClientes();
+    form.reset();
+    renderClientes();
   });
+}
 
-  // ====== ATUALIZAR HOME ======
-  function atualizarHome(filtro = "") {
-    listaClientesHome.innerHTML = "";
-    clientes
-      .filter(c => c.nome.toLowerCase().includes(filtro.toLowerCase()))
-      .forEach(cliente => {
-        const card = document.createElement("div");
-        card.className = "card-cliente";
-        card.innerHTML = `
-          <h3>${cliente.nome}</h3>
-          <p><strong>CPF:</strong> ${cliente.cpf}</p>
-          <p><strong>Valor:</strong> R$ ${cliente.valor.toFixed(2)}</p>
-          <p><strong>Vencimento:</strong> ${cliente.dataVencimento}</p>
-          <p><strong>Status:</strong> ${cliente.pago ? "Pago" : "Pendente"}</p>
-          <button onclick="editarCliente(${cliente.id})">Editar</button>
-          <button onclick="excluirCliente(${cliente.id})">Excluir</button>
-          <button onclick="renovarEmprestimo(${cliente.id})">Reajustar/Renovar</button>
-        `;
-        listaClientesHome.appendChild(card);
-      });
-  }
+// ---------- Renderizar clientes ----------
+function renderClientes(lista = clientes) {
+  const container = document.getElementById("clientesContainer");
+  if (!container) return;
 
-  filtroClientesHome.addEventListener("input", e => atualizarHome(e.target.value));
-
-  // ====== HISTÓRICO ======
-  function atualizarHistorico() {
-    containerHistorico.innerHTML = "";
-    clientes.forEach(c => {
-      const div = document.createElement("div");
-      div.className = "card-historico";
-      div.innerHTML = `
-        <h3>${c.nome}</h3>
-        <p>Valor: R$ ${c.valor.toFixed(2)}</p>
-        <p>Juros total: R$ ${c.jurosTotais.toFixed(2)}</p>
-        <p>Total a pagar: R$ ${c.totalPagar.toFixed(2)}</p>
-        <p>Data: ${c.dataEmprestimo} → ${c.dataVencimento}</p>
-        <p>Status: ${c.pago ? "Pago" : "Pendente"}</p>
-      `;
-      containerHistorico.appendChild(div);
-    });
-  }
-
-  // ====== DEVEDORES ======
-  function atualizarDevedores(filtro = "") {
-    listaDevedores.innerHTML = "";
-    const hoje = new Date();
-    clientes
-      .filter(c => !c.pago && c.nome.toLowerCase().includes(filtro.toLowerCase()))
-      .forEach(c => {
-        const dataVenc = new Date(c.dataVencimento.split("/").reverse().join("-"));
-        const diasRestantes = Math.ceil((dataVenc - hoje) / (1000 * 60 * 60 * 24));
-        const card = document.createElement("div");
-        card.className = "card-cliente";
-        card.innerHTML = `
-          <h3>${c.nome}</h3>
-          <p><strong>Valor:</strong> R$ ${c.totalPagar.toFixed(2)}</p>
-          <p><strong>Vencimento:</strong> ${c.dataVencimento} (${diasRestantes} dias restantes)</p>
-          <a href="https://wa.me/${c.pix.replace(/\D/g, '')}?text=Olá%20${c.nome},%20seu%20empréstimo%20vence%20em%20${c.dataVencimento}.%20Por%20favor%20entre%20em%20contato%20para%20quitar.%20-%20${proprietario.nome}"
-            target="_blank" class="btn-whatsapp">Enviar WhatsApp</a>
-        `;
-        listaDevedores.appendChild(card);
-      });
-  }
-
-  document.getElementById("buscaEmprestimos").addEventListener("input", e => atualizarDevedores(e.target.value));
-
-  // ====== DASHBOARD ======
-  function atualizarDashboard() {
-    document.getElementById("totalClientes").textContent = clientes.length;
-    const totalEmprestado = clientes.reduce((s, c) => s + c.valor, 0);
-    const totalReceber = clientes.reduce((s, c) => s + (c.pago ? 0 : c.totalPagar), 0);
-    const totalRecebido = clientes.reduce((s, c) => s + (c.pago ? c.totalPagar : 0), 0);
-    document.getElementById("totalEmprestado").textContent = totalEmprestado.toFixed(2);
-    document.getElementById("totalReceber").textContent = totalReceber.toFixed(2);
-    document.getElementById("totalRecebido").textContent = totalRecebido.toFixed(2);
-  }
-
-  // ====== FUNÇÕES GLOBAIS ======
-  window.editarCliente = id => {
-    const c = clientes.find(cli => cli.id === id);
-    if (!c) return;
-    const novoValor = parseFloat(prompt("Novo valor do empréstimo:", c.valor));
-    const novoJuros = parseFloat(prompt("Novo juros diário (%):", c.juros));
-    const novosDias = parseInt(prompt("Novo prazo (dias):", c.dias));
-
-    c.valor = novoValor;
-    c.juros = novoJuros;
-    c.dias = novosDias;
-    const jurosTotais = ((novoValor * novoJuros) / 100) * novosDias;
-    c.jurosTotais = jurosTotais;
-    c.totalPagar = novoValor + jurosTotais;
-    c.dataVencimento = new Date(Date.now() + novosDias * 86400000).toLocaleDateString();
-
-    localStorage.setItem("clientes", JSON.stringify(clientes));
-    atualizarHome();
-    atualizarHistorico();
-    atualizarDashboard();
-    atualizarDevedores();
-  };
-
-  window.excluirCliente = id => {
-    if (confirm("Deseja realmente excluir este cliente?")) {
-      clientes = clientes.filter(c => c.id !== id);
-      localStorage.setItem("clientes", JSON.stringify(clientes));
-      atualizarHome();
-      atualizarHistorico();
-      atualizarDashboard();
-      atualizarDevedores();
-    }
-  };
-
-  window.renovarEmprestimo = id => {
-    const c = clientes.find(cli => cli.id === id);
-    if (!c) return;
-    c.renovacoes.push({
-      data: new Date().toLocaleDateString(),
-      valorAntigo: c.valor,
-      novoValor: parseFloat(prompt("Novo valor do empréstimo:", c.valor)),
-    });
-    c.valor = c.renovacoes[c.renovacoes.length - 1].novoValor;
-    c.dataEmprestimo = new Date().toLocaleDateString();
-    c.dataVencimento = new Date(Date.now() + c.dias * 86400000).toLocaleDateString();
-    localStorage.setItem("clientes", JSON.stringify(clientes));
-    atualizarHome();
-    atualizarHistorico();
-  };
-
-  // ====== EXPORTAR EXCEL ======
-  document.getElementById("exportarExcel").addEventListener("click", () => {
-    const ws = XLSX.utils.json_to_sheet(clientes);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Empréstimos");
-    XLSX.writeFile(wb, "historico_emprestimos.xlsx");
+  container.innerHTML = "";
+  lista.forEach((c) => {
+    const total = c.valor + (c.valor * (c.juros / 100) * c.dias);
+    const diasRest = diasRestantes(c.vencimento);
+    const card = document.createElement("div");
+    card.className = "cliente-card";
+    card.innerHTML = `
+      <h3>${c.nome}</h3>
+      <p><strong>Valor:</strong> R$ ${c.valor.toFixed(2)}</p>
+      <p><strong>Juros:</strong> ${c.juros}% ao dia</p>
+      <p><strong>Total:</strong> R$ ${total.toFixed(2)}</p>
+      <p><strong>Dias Restantes:</strong> ${diasRest}</p>
+      <p><strong>Status:</strong> ${c.status}</p>
+      <div class="acoes">
+        <button onclick="editarCliente(${c.id})">✏️ Editar</button>
+        <button onclick="renovarEmprestimo(${c.id})">🔁 Renovar</button>
+        <button onclick="excluirCliente(${c.id})">🗑️ Excluir</button>
+      </div>
+      <button onclick="enviarWhatsApp(${c.id})">📲 Lembrar no WhatsApp</button>
+    `;
+    container.appendChild(card);
   });
+}
+renderClientes();
 
-  // ====== EXPORTAR PDF ======
-  document.getElementById("exportarPDF").addEventListener("click", () => {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.text("Histórico de Empréstimos - EmpressX", 14, 10);
-    doc.autoTable({
-      head: [["Nome", "CPF", "Valor", "Total", "Vencimento", "Status"]],
-      body: clientes.map(c => [c.nome, c.cpf, `R$ ${c.valor.toFixed(2)}`, `R$ ${c.totalPagar.toFixed(2)}`, c.dataVencimento, c.pago ? "Pago" : "Pendente"]),
-    });
-    doc.save("historico_emprestimos.pdf");
-  });
-
-  // ====== INICIALIZAÇÃO ======
-  atualizarHome();
-  atualizarHistorico();
-  atualizarDevedores();
-  atualizarDashboard();
+// ---------- Filtrar por nome ----------
+document.getElementById("filtroNome")?.addEventListener("input", (e) => {
+  const nomeBusca = e.target.value.toLowerCase();
+  const filtrados = clientes.filter(c => c.nome.toLowerCase().includes(nomeBusca));
+  renderClientes(filtrados);
 });
+
+// ---------- Editar cliente ----------
+function editarCliente(id) {
+  const cliente = clientes.find(c => c.id === id);
+  if (!cliente) return;
+
+  const novoValor = parseFloat(prompt("Novo valor do empréstimo:", cliente.valor)) || cliente.valor;
+  const novoJuros = parseFloat(prompt("Novo juros (% ao dia):", cliente.juros)) || cliente.juros;
+  cliente.valor = novoValor;
+  cliente.juros = novoJuros;
+  salvarClientes();
+  renderClientes();
+}
+
+// ---------- Renovar empréstimo ----------
+function renovarEmprestimo(id) {
+  const cliente = clientes.find(c => c.id === id);
+  if (!cliente) return;
+
+  cliente.historico.push({
+    data: new Date().toISOString(),
+    valorAnterior: cliente.valor,
+    jurosAnterior: cliente.juros
+  });
+
+  const novoValor = parseFloat(prompt("Novo valor (renovado):", cliente.valor));
+  const novosDias = parseInt(prompt("Novos dias:", cliente.dias));
+  const novoJuros = parseFloat(prompt("Novo juros (%):", cliente.juros));
+
+  cliente.valor = novoValor;
+  cliente.dias = novosDias;
+  cliente.juros = novoJuros;
+  cliente.vencimento = new Date(Date.now() + novosDias * 24 * 60 * 60 * 1000).toISOString();
+  salvarClientes();
+  renderClientes();
+}
+
+// ---------- Excluir cliente ----------
+function excluirCliente(id) {
+  if (confirm("Deseja realmente excluir este cliente?")) {
+    clientes = clientes.filter(c => c.id !== id);
+    salvarClientes();
+    renderClientes();
+  }
+}
+
+// ---------- WhatsApp ----------
+function enviarWhatsApp(id) {
+  const c = clientes.find(x => x.id === id);
+  if (!c || !perfil) {
+    alert("Configure o perfil antes de enviar mensagens!");
+    return;
+  }
+  const total = c.valor + (c.valor * (c.juros / 100) * c.dias);
+  const msg = `Olá ${c.nome}, lembrando que seu empréstimo de R$${total.toFixed(2)} vence hoje. Envie via PIX para ${perfil.cpf}. — EmpressX Controle 💼`;
+  const url = `https://wa.me/${perfil.telefone.replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`;
+  window.open(url, "_blank");
+}

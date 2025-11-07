@@ -1,245 +1,249 @@
-/* ======= RESET ======= */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Poppins", sans-serif;
+/* ======== EmpressX Controle - style.css ======== */
+
+/* --------- Reset e Variáveis --------- */
+:root {
+  --bg-dark: #0a0f1f;
+  --bg-card-dark: #141c2f;
+  --text-dark: #e2e8f0;
+  --accent-dark: #007bff;
+
+  --bg-light: #f4f6fa;
+  --bg-card-light: #ffffff;
+  --text-light: #1e293b;
+  --accent-light: #0056d2;
+
+  --radius: 12px;
+  --transition: 0.3s ease;
 }
 
 body {
-  background-color: var(--bg);
-  color: var(--text);
-  transition: background 0.3s, color 0.3s;
-  overflow-x: hidden;
+  font-family: "Poppins", sans-serif;
+  margin: 0;
+  background: var(--bg-dark);
+  color: var(--text-dark);
+  transition: background var(--transition), color var(--transition);
 }
 
-/* ======= TEMAS ======= */
-:root {
-  --bg: #0a0f1f;
-  --text: #eaeaea;
-  --card: #141c2f;
-  --accent: #00e676;
-  --menu: #111a2f;
+body.light-theme {
+  background: var(--bg-light);
+  color: var(--text-light);
 }
 
-.light {
-  --bg: #f4f6fb;
-  --text: #222;
-  --card: #ffffff;
-  --accent: #4caf50;
-  --menu: #e4e6eb;
-}
-
-/* ======= MENU LATERAL ======= */
+/* --------- Menu lateral --------- */
 .sidebar {
+  width: 250px;
+  background: var(--bg-card-dark);
+  height: 100vh;
   position: fixed;
   left: 0;
   top: 0;
-  width: 250px;
-  height: 100vh;
-  background: var(--menu);
-  color: var(--text);
-  padding: 20px 15px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  transition: transform 0.3s ease;
-  z-index: 1000;
+  padding-top: 20px;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+  transition: var(--transition);
+  z-index: 10;
 }
 
-.sidebar-logo {
-  font-size: 1.6rem;
-  font-weight: bold;
-  color: var(--accent);
+body.light-theme .sidebar {
+  background: var(--bg-card-light);
+}
+
+.sidebar h2 {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  font-size: 1.3em;
+  color: var(--accent-dark);
 }
 
-.sidebar nav ul {
-  list-style: none;
-}
-
-.sidebar nav ul li {
-  margin: 12px 0;
-}
-
-.sidebar nav ul li a,
-.sidebar nav ul li button {
+.sidebar a {
+  color: inherit;
   text-decoration: none;
-  color: var(--text);
-  background: transparent;
-  border: none;
-  font-size: 1rem;
+  padding: 14px 20px;
   display: block;
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.2s;
+  border-radius: var(--radius);
+  margin: 4px 12px;
+  transition: var(--transition);
 }
 
-.sidebar nav ul li a:hover,
-.sidebar nav ul li button:hover,
-.sidebar nav ul li a.ativo {
-  background: var(--accent);
+.sidebar a:hover, .sidebar a.active {
+  background: var(--accent-dark);
   color: #fff;
 }
 
-/* ======= BOTÃO MENU (HAMBURGUER) ======= */
-#btnMenu {
-  position: fixed;
-  top: 15px;
-  left: 15px;
-  z-index: 1100;
-  font-size: 1.8rem;
-  background: var(--accent);
-  border: none;
+body.light-theme .sidebar a:hover,
+body.light-theme .sidebar a.active {
+  background: var(--accent-light);
   color: #fff;
-  padding: 6px 10px;
-  border-radius: 8px;
-  cursor: pointer;
+}
+
+/* --------- Menu responsivo --------- */
+.hamburger {
   display: none;
+  position: fixed;
+  left: 15px;
+  top: 15px;
+  background: var(--accent-dark);
+  color: #fff;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 20;
 }
 
-/* ======= CONTEÚDO ======= */
-.conteudo {
-  margin-left: 270px;
+body.light-theme .hamburger {
+  background: var(--accent-light);
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 220px;
+    transform: translateX(-250px);
+  }
+  .sidebar.active {
+    transform: translateX(0);
+  }
+  .hamburger {
+    display: block;
+  }
+}
+
+/* --------- Conteúdo principal --------- */
+main {
+  margin-left: 260px;
   padding: 20px;
-  min-height: 100vh;
+  transition: var(--transition);
 }
 
-h1 {
-  color: var(--accent);
-  margin-bottom: 15px;
+@media (max-width: 768px) {
+  main {
+    margin-left: 0;
+    padding-top: 70px;
+  }
 }
 
-input,
-select,
-button,
-textarea {
-  width: 100%;
+/* --------- Formulários --------- */
+form {
+  display: grid;
+  gap: 10px;
+  max-width: 400px;
+  margin-bottom: 30px;
+}
+
+input, select {
   padding: 10px;
-  margin: 6px 0 15px 0;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: var(--card);
-  color: var(--text);
+  border-radius: var(--radius);
+  border: 1px solid #444;
+  background: var(--bg-card-dark);
+  color: var(--text-dark);
+  transition: var(--transition);
+}
+
+body.light-theme input, body.light-theme select {
+  background: var(--bg-card-light);
+  color: var(--text-light);
+  border-color: #ccc;
 }
 
 button {
-  background: var(--accent);
+  background: var(--accent-dark);
   color: #fff;
   border: none;
-  font-weight: 600;
+  padding: 10px;
+  border-radius: var(--radius);
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: var(--transition);
 }
 
 button:hover {
   opacity: 0.9;
 }
 
-/* ======= LISTA DE CLIENTES ======= */
-.lista-clientes {
+body.light-theme button {
+  background: var(--accent-light);
+}
+
+/* --------- Cards de clientes --------- */
+#clientesContainer {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 20px;
 }
 
-.card-cliente {
-  background: var(--card);
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  padding: 15px;
-  text-align: center;
-  transition: transform 0.2s;
+.cliente-card {
+  background: var(--bg-card-dark);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  transition: transform var(--transition);
 }
 
-.card-cliente:hover {
-  transform: scale(1.02);
+.cliente-card:hover {
+  transform: translateY(-5px);
 }
 
-.card-cliente img {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: 10px;
-  border: 2px solid var(--accent);
+body.light-theme .cliente-card {
+  background: var(--bg-card-light);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.card-cliente h3 {
-  margin-bottom: 5px;
+.cliente-card h3 {
+  margin-top: 0;
+  color: var(--accent-dark);
 }
 
-.card-cliente p {
-  font-size: 0.9rem;
-  margin-bottom: 5px;
+body.light-theme .cliente-card h3 {
+  color: var(--accent-light);
 }
 
-.card-cliente .acoes {
+.cliente-card p {
+  margin: 6px 0;
+  font-size: 0.95em;
+}
+
+.cliente-card .acoes {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   margin-top: 10px;
 }
 
-.card-cliente .acoes button {
-  font-size: 0.9rem;
-  padding: 6px 10px;
+/* --------- Perfil do proprietário --------- */
+#perfilContainer {
+  background: var(--bg-card-dark);
+  border-radius: var(--radius);
+  padding: 20px;
+  max-width: 400px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
-/* ======= PERFIL ======= */
-.perfil-preview {
-  margin-top: 20px;
-  text-align: center;
+body.light-theme #perfilContainer {
+  background: var(--bg-card-light);
 }
 
-.perfil-preview img {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  border: 2px solid var(--accent);
-  object-fit: cover;
+#perfilContainer h3 {
+  margin-top: 0;
+}
+
+#perfilContainer input {
+  width: 100%;
   margin-bottom: 10px;
 }
 
-/* ======= DASHBOARD ======= */
-.dashboard-info {
-  list-style: none;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
+/* --------- Tema e utilidades --------- */
+#toggleTema {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  background: var(--accent-dark);
+  color: #fff;
+  border: none;
+  padding: 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
-.dashboard-info li {
-  background: var(--card);
-  border-radius: 10px;
-  padding: 15px;
-  text-align: center;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-/* ======= RESPONSIVIDADE ======= */
-@media (max-width: 768px) {
-  #btnMenu {
-    display: block;
-  }
-
-  .sidebar {
-    transform: translateX(-100%);
-  }
-
-  .sidebar.ativo {
-    transform: translateX(0);
-  }
-
-  .conteudo {
-    margin-left: 0;
-    padding-top: 60px;
-  }
-
-  .lista-clientes {
-    grid-template-columns: 1fr;
-  }
+body.light-theme #toggleTema {
+  background: var(--accent-light);
 }
